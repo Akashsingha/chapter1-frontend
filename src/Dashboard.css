@@ -1,0 +1,104 @@
+.dashboard-header {
+  background-color: #3b2a1a;
+  color: #fdf6ec;
+  padding: 20px;
+}
+
+.dashboard-header h1 {
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+
+.dashboard-header p {
+  font-size: 13px;
+  color: #c8951a;
+  margin-top: 4px;
+}
+
+.orders-list {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-left: 4px solid #c8951a;
+}
+
+.order-card.ready {
+  border-left: 4px solid #4caf50;
+  opacity: 0.7;
+}
+
+.order-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #3b2a1a;
+}
+
+.order-phone {
+  font-size: 13px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.order-total {
+  font-size: 15px;
+  color: #c8951a;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.order-status {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.order-status.ready {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.ready-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px;
+  background-color: #3b2a1a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ready-btn:disabled {
+  background-color: #ccc;
+  cursor: default;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+  font-size: 16px;
+}
+
+.order-card.preparing {
+  border-left: 4px solid #ff9800;
+}
+
+.order-status.preparing {
+  background-color: #fff3e0;
+  color: #e65100;
+}
