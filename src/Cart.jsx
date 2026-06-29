@@ -19,7 +19,7 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
     }
     setOrdering(true);
     axios
-      .post("http://localhost:8000/orders", {
+      .post("https://chapter1-backend-1.onrender.com/orders", {
         customer_name: name,
         customer_phone: phone,
         items: cart,

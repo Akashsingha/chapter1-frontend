@@ -73,13 +73,13 @@ function stopRinging() {
   }, [])
 
   function fetchOrders() {
-    axios.get('http://localhost:8000/orders')
+    axios.get('https://chapter1-backend-1.onrender.com/orders')
       .then(response => setOrders(response.data))
   }
 
   function updateStatus(orderId, status) {
     stopRinging()
-    axios.patch(`http://localhost:8000/orders/${orderId}/status`, {
+    axios.patch(`https://chapter1-backend-1.onrender.com/orders/${orderId}/status`, {
       status: status
     }).then(() => {
       setOrders(prev => prev.map(o =>

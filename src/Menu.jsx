@@ -12,7 +12,7 @@ function Menu({ cart, addToCart }) {
   const [menuItems, setMenuItems] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/menu").then((response) => {
+    axios.get("https://chapter1-backend-1.onrender.com/menu").then((response) => {
       setMenuItems(response.data);
     });
   }, []);
