@@ -32,6 +32,7 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
             state: {
               name: name,
               total: response.data.total,
+              payment: 'cash'
             },
           });
         });
@@ -55,6 +56,7 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
                 state: {
                   name: name,
                   total: res.data.total,
+                  payment: 'upi'
                 },
               });
             });
