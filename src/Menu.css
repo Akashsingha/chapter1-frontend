@@ -74,3 +74,15 @@ body {
 .add-btn:active {
   background-color: #c8951a;
 }
+.menu-section {
+  padding: 0 20px;
+  margin-top: 20px;
+}
+
+.section-title {
+  font-size: 20px;
+  color: #3b2a1a;
+  border-bottom: 2px solid #c8951a;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
