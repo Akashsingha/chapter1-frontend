@@ -61,7 +61,7 @@ function stopRinging() {
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => {
-          setOrders(prev => [...prev, payload.new])
+          setOrders(prev => [ payload.new,...prev])
           startRinging()
         }
       )
@@ -74,7 +74,7 @@ function stopRinging() {
 
   function fetchOrders() {
     axios.get('https://chapter1-backend-1.onrender.com/orders')
-      .then(response => setOrders(response.data))
+      .then(response => setOrders(response.data.reverse()))
   }
 
   function updateStatus(orderId, status) {
