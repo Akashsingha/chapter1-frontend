@@ -171,8 +171,8 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
             onClick={() => setPayment("upi")}
           >
             <span className="payment-icon">📱</span>
-            <span className="payment-label">UPI</span>
-            <span className="coming-soon">Coming Soon</span>
+            <span className="payment-label">Online Payment</span>
+            
           </div>
 
           <div className="payment-option disabled">
