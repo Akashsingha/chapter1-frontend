@@ -18,23 +18,60 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
       return;
     }
     setOrdering(true);
-    axios
-      .post("https://chapter1-backend-1.onrender.com/orders", {
-        customer_name: name,
-        customer_phone: phone,
-        items: cart,
-      })
-      .then((response) => {
-        setOrdering(false);
-        navigate("/confirmed", {
-          state: {
-            name: name,
-            total: response.data.total,
-          },
-        });
-      });
-  }
 
+    if (payment === "cash") {
+      axios
+        .post("https://chapter1-backend-1.onrender.com/orders", {
+          customer_name: name,
+          customer_phone: phone,
+          items: cart,
+        })
+        .then((response) => {
+          setOrdering(false);
+          navigate("/confirmed", {
+            state: {
+              name: name,
+              total: response.data.total,
+            },
+          });
+        });
+    } else {
+      const options = {
+        key: "rzp_test_T7o1A0Da9bGZS1",
+        amount: total,
+        currency: "INR",
+        name: "Chapter 1 Cafe",
+        description: "Food order payment",
+        handler: function (response) {
+          axios
+            .post("https://chapter1-backend-1.onrender.com/orders", {
+              customer_name: name,
+              customer_phone: phone,
+              items: cart,
+            })
+            .then((res) => {
+              setOrdering(false);
+              navigate("/confirmed", {
+                state: {
+                  name: name,
+                  total: res.data.total,
+                },
+              });
+            });
+        },
+        prefill: {
+          name: name,
+          contact: phone,
+        },
+        theme: {
+          color: "#3b2a1a",
+        },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+      setOrdering(false);
+    }
+  }
   if (cart.length === 0) {
     return (
       <div>
@@ -129,7 +166,10 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
             <span className="payment-sub">Pay at counter</span>
           </div>
 
-          <div className="payment-option disabled">
+          <div
+            className={`payment-option ${payment === "upi" ? "selected" : ""}`}
+            onClick={() => setPayment("upi")}
+          >
             <span className="payment-icon">📱</span>
             <span className="payment-label">UPI</span>
             <span className="coming-soon">Coming Soon</span>
