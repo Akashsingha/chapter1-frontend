@@ -6,16 +6,24 @@ import "./Menu.css";
 function Menu({ cart, addToCart }) {
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
+  const [addedItem, setAddedItem] = useState(null);
 
   useEffect(() => {
-    axios.get("https://chapter1-backend-1.onrender.com/menu").then((response) => {
-      setMenuItems(response.data);
-    });
+    axios
+      .get("https://chapter1-backend-1.onrender.com/menu")
+      .then((response) => {
+        setMenuItems(response.data);
+      });
   }, []);
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // Group items by category
+  function handleAdd(item) {
+    addToCart(item);
+    setAddedItem(item.id);
+    setTimeout(() => setAddedItem(null), 1000);
+  }
+
   const grouped = menuItems.reduce((acc, item) => {
     const category = item.category || "Others";
     if (!acc[category]) acc[category] = [];
@@ -40,14 +48,23 @@ function Menu({ cart, addToCart }) {
               <div key={item.id} className="menu-card">
                 <h3>{item.name}</h3>
                 <p>₹{item.price / 100}</p>
-                <button className="add-btn" onClick={() => addToCart(item)}>
-                  Add
+                <button
+                  className={`add-btn ${addedItem === item.id ? "added" : ""}`}
+                  onClick={() => handleAdd(item)}
+                >
+                  {addedItem === item.id ? "✓ Added" : "Add"}
                 </button>
               </div>
             ))}
           </div>
         </div>
       ))}
+      {totalItems > 0 && (
+        <div className="floating-cart" onClick={() => navigate("/cart")}>
+          <span className="floating-cart-count">{totalItems} items</span>
+          <span className="floating-cart-text">View Cart →</span>
+        </div>
+      )}
     </div>
   );
 }

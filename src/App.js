@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Menu from './Menu'
 import Cart from './Cart'
@@ -6,34 +6,38 @@ import Dashboard from './Dashboard'
 import Confirmed from './Confirmed'
 
 function App() {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    const saved = localStorage.getItem('cart')
+    return saved ? JSON.parse(saved) : []
+  })
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+  }, [cart])
 
   function addToCart(item) {
-    const existing = cart.find((i) => i.name === item.name);
+    const existing = cart.find(i => i.name === item.name)
     if (existing) {
-      setCart(
-        cart.map((i) =>
-          i.name === item.name ? { ...i, quantity: i.quantity + 1 } : i,
-        ),
-      );
+      setCart(cart.map(i =>
+        i.name === item.name ? {...i, quantity: i.quantity + 1} : i
+      ))
     } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+      setCart([...cart, {...item, quantity: 1}])
     }
   }
+
   function removeFromCart(itemName) {
-    setCart(cart.filter((i) => i.name !== itemName));
+    setCart(cart.filter(i => i.name !== itemName))
   }
 
   function decreaseQuantity(itemName) {
-    const existing = cart.find((i) => i.name === itemName);
+    const existing = cart.find(i => i.name === itemName)
     if (existing.quantity === 1) {
-      removeFromCart(itemName);
+      removeFromCart(itemName)
     } else {
-      setCart(
-        cart.map((i) =>
-          i.name === itemName ? { ...i, quantity: i.quantity - 1 } : i,
-        ),
-      );
+      setCart(cart.map(i =>
+        i.name === itemName ? {...i, quantity: i.quantity - 1} : i
+      ))
     }
   }
 
@@ -41,22 +45,19 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Menu cart={cart} addToCart={addToCart} />} />
-        <Route
-          path="/cart"
-          element={
-            <Cart
-              cart={cart}
-              removeFromCart={removeFromCart}
-              decreaseQuantity={decreaseQuantity}
-              addToCart={addToCart}
-            />
-          }
+        <Route path="/cart" element={
+          <Cart 
+            cart={cart} 
+            removeFromCart={removeFromCart}
+            decreaseQuantity={decreaseQuantity}
+            addToCart={addToCart}
+          />} 
         />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/confirmed" element={<Confirmed />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
 export default App

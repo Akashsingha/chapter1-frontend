@@ -86,3 +86,46 @@ body {
   padding-bottom: 8px;
   margin-bottom: 12px;
 }
+.add-btn.added {
+  background-color: #4caf50;
+  transition: background-color 0.3s ease;
+}
+.floating-cart {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background-color: #3b2a1a;
+  color: white;
+  padding: 16px 20px;
+  border-radius: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 100;
+  animation: slideUp 0.3s ease;
+}
+
+.floating-cart-count {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.floating-cart-text {
+  font-size: 15px;
+  color: #c8951a;
+  font-weight: bold;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

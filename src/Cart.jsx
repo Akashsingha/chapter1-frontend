@@ -9,14 +9,22 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
   const [ordering, setOrdering] = useState(false);
   const [payment, setPayment] = useState("cash");
   const navigate = useNavigate();
+  const [phoneError, setPhoneError] = useState(false);
+  const [shake, setShake] = useState(false);
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   function placeOrder() {
-    if (!name || !phone) {
-      alert("Please enter your name and phone number");
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    if (!name.trim() || !phoneRegex.test(phone)) {
+      setPhoneError(true);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
       return;
     }
+
+    setPhoneError(false);
     setOrdering(true);
 
     if (payment === "cash") {
@@ -32,7 +40,7 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
             state: {
               name: name,
               total: response.data.total,
-              payment: 'cash'
+              payment: "cash",
             },
           });
         });
@@ -56,7 +64,7 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
                 state: {
                   name: name,
                   total: res.data.total,
-                  payment: 'upi'
+                  payment: "upi",
                 },
               });
             });
@@ -174,7 +182,6 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
           >
             <span className="payment-icon">📱</span>
             <span className="payment-label">Online Payment</span>
-            
           </div>
 
           <div className="payment-option disabled">
@@ -191,11 +198,21 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <input
-          placeholder="Phone number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
+        <div className={shake ? 'shake' : ''}>
+  <input
+    placeholder="Phone number"
+    value={phone}
+    maxLength={10}
+    onChange={e => {
+      const value = e.target.value.replace(/\D/g, '')
+      setPhone(value)
+      setPhoneError(false)
+    }}
+  />
+  {phoneError && (
+    <p className="error-text">Please enter a valid 10-digit phone number</p>
+  )}
+</div>
         <button className="order-btn" onClick={placeOrder} disabled={ordering}>
           {ordering ? "Placing..." : "✅ Place Order — Cash"}
         </button>
