@@ -14,6 +14,14 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  function generateUpiLink() {
+    const upiId = "7866835502@slc";
+    const payeeName = "Chapter 1 Cafe";
+    const amount = (total / 100).toFixed(2);
+    const note = `Order`;
+    return `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${note}`;
+  }
+
   function placeOrder() {
     const phoneRegex = /^[6-9]\d{9}$/;
 
@@ -27,61 +35,33 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
     setPhoneError(false);
     setOrdering(true);
 
-    if (payment === "cash") {
-      axios
-        .post("https://chapter1-backend-1.onrender.com/orders", {
-          customer_name: name,
-          customer_phone: phone,
-          items: cart,
-        })
-        .then((response) => {
-          setOrdering(false);
-          navigate("/confirmed", {
-            state: {
-              name: name,
-              total: response.data.total,
-              payment: "cash",
-            },
-          });
-        });
-    } else {
-      const options = {
-        key: "rzp_test_T7o1A0Da9bGZS1",
-        amount: total,
-        currency: "INR",
-        name: "Chapter 1 Cafe",
-        description: "Food order payment",
-        handler: function (response) {
-          axios
-            .post("https://chapter1-backend-1.onrender.com/orders", {
-              customer_name: name,
-              customer_phone: phone,
-              items: cart,
-            })
-            .then((res) => {
-              setOrdering(false);
-              navigate("/confirmed", {
-                state: {
-                  name: name,
-                  total: res.data.total,
-                  payment: "upi",
-                },
-              });
-            });
-        },
-        prefill: {
-          name: name,
-          contact: phone,
-        },
-        theme: {
-          color: "#3b2a1a",
-        },
-      };
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+    axios.post('https://chapter1-backend-1.onrender.com/orders', {
+      customer_name: name,
+      customer_phone: phone,
+      items: cart,
+      payment_method: payment
+    })
+    .then(response => {
       setOrdering(false);
-    }
+      if (payment === 'upi') {
+        window.location.href = generateUpiLink();
+        setTimeout(() => {
+          navigate('/confirmed', { state: {
+            name: name,
+            total: response.data.total,
+            payment: 'upi'
+          }});
+        }, 1500);
+      } else {
+        navigate('/confirmed', { state: {
+          name: name,
+          total: response.data.total,
+          payment: 'cash'
+        }});
+      }
+    });
   }
+
   if (cart.length === 0) {
     return (
       <div>
@@ -198,23 +178,25 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <div className={shake ? 'shake' : ''}>
-  <input
-    placeholder="Phone number"
-    value={phone}
-    maxLength={10}
-    onChange={e => {
-      const value = e.target.value.replace(/\D/g, '')
-      setPhone(value)
-      setPhoneError(false)
-    }}
-  />
-  {phoneError && (
-    <p className="error-text">Please enter a valid 10-digit phone number</p>
-  )}
-</div>
+        <div className={shake ? "shake" : ""}>
+          <input
+            placeholder="Phone number"
+            value={phone}
+            maxLength={10}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+              setPhone(value);
+              setPhoneError(false);
+            }}
+          />
+          {phoneError && (
+            <p className="error-text">
+              Please enter a valid 10-digit phone number
+            </p>
+          )}
+        </div>
         <button className="order-btn" onClick={placeOrder} disabled={ordering}>
-          {ordering ? "Placing..." : "✅ Place Order — Cash"}
+          {ordering ? "Placing..." : `✅ Place Order — ${payment === 'cash' ? 'Cash' : 'UPI'}`}
         </button>
       </div>
     </div>

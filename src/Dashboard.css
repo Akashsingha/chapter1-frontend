@@ -102,3 +102,35 @@
   background-color: #fff3e0;
   color: #e65100;
 }
+.payment-pending-banner {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 8px 0;
+  font-size: 13px;
+  color: #856404;
+}
+
+.confirm-payment-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.payment-confirmed-badge {
+  background: #d4edda;
+  color: #155724;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  margin: 8px 0;
+  display: inline-block;
+}

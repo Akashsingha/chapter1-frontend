@@ -3,12 +3,12 @@ import axios from 'axios'
 import supabase from './supabaseClient'
 import './Dashboard.css'
 
-
 function Dashboard() {
   const [orders, setOrders] = useState([])
   const audioCtx = useRef(null)
   const bellInterval = useRef(null)
-// eslint-disable-next-line no-use-before-define
+
+  // eslint-disable-next-line no-use-before-define
   function playBell() {
     if (!audioCtx.current) {
       audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -41,27 +41,29 @@ function Dashboard() {
     })
   }
 
-function stopRinging() {
-  if (bellInterval.current) {
-    clearInterval(bellInterval.current)
-    bellInterval.current = null
+  function stopRinging() {
+    if (bellInterval.current) {
+      clearInterval(bellInterval.current)
+      bellInterval.current = null
+    }
   }
-}
-// eslint-disable-next-line no-use-before-define  
+
+  // eslint-disable-next-line no-use-before-define
   function unlockAudio() {
     if (!audioCtx.current) {
       audioCtx.current = new (window.AudioContext || window.webkitAudioContext)()
-  }
+    }
     audioCtx.current.resume()
   }
-// eslint-disable-next-line react-hooks/exhaustive-deps
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const channel = supabase
       .channel('dashboard')
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => {
-          setOrders(prev => [ payload.new,...prev])
+          setOrders(prev => [payload.new, ...prev])
           startRinging()
         }
       )
@@ -87,6 +89,17 @@ function stopRinging() {
       ))
     })
   }
+
+  function confirmPayment(orderId) {
+    axios.patch(`https://chapter1-backend-1.onrender.com/orders/${orderId}/payment`, {
+      payment_status: 'confirmed'
+    }).then(() => {
+      setOrders(prev => prev.map(o =>
+        o.id === orderId ? {...o, payment_status: 'confirmed'} : o
+      ))
+    })
+  }
+
   function getStatusBadge(status) {
     if (status === 'received') return '⏳ Received'
     if (status === 'preparing') return '👨‍🍳 Preparing'
@@ -140,6 +153,23 @@ function stopRinging() {
             <div className="order-name">👤 {order.customer_name}</div>
             <div className="order-phone">📞 {order.customer_phone}</div>
             <div className="order-total">₹{order.total_amount / 100}</div>
+
+            {order.payment_status === 'pending' && (
+              <div className="payment-pending-banner">
+                ⚠️ {order.payment_method === 'upi' ? 'UPI Payment Pending' : 'Cash Payment Pending'} — 
+                verify ₹{order.total_amount/100} before confirming
+                <button className="confirm-payment-btn" onClick={() => confirmPayment(order.id)}>
+                  ✅ Confirm Payment Received
+                </button>
+              </div>
+            )}
+
+            {order.payment_status === 'confirmed' && (
+              <div className="payment-confirmed-badge">
+                💰 Payment Confirmed
+              </div>
+            )}
+
             <div className={`order-status ${getStatusClass(order.status)}`}>
               {getStatusBadge(order.status)}
             </div>
