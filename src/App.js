@@ -4,6 +4,18 @@ import Menu from './Menu'
 import Cart from './Cart'
 import Dashboard from './Dashboard'
 import Confirmed from './Confirmed'
+import DashboardLogin from './DashboardLogin'
+
+function ProtectedDashboard() {
+  const [hasAccess, setHasAccess] = useState(
+    sessionStorage.getItem('dashboardAccess') === 'true'
+  )
+
+  if (hasAccess) {
+    return <Dashboard />
+  }
+  return <DashboardLogin onSuccess={() => setHasAccess(true)} />
+}
 
 function App() {
   const [cart, setCart] = useState(() => {
@@ -53,7 +65,7 @@ function App() {
             addToCart={addToCart}
           />} 
         />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<ProtectedDashboard />} />
         <Route path="/confirmed" element={<Confirmed />} />
       </Routes>
     </BrowserRouter>
