@@ -44,25 +44,14 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
     .then(response => {
       setOrdering(false);
       if (payment === 'upi') {
-        const upiLink = generateUpiLink();
-
-        // Use an anchor element — much more reliable for triggering
-        // the Android intent chooser than window.location.href
-        const a = document.createElement('a');
-        a.href = upiLink;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // Navigate to confirmed page after a short delay
+        window.location.href = generateUpiLink();
         setTimeout(() => {
           navigate('/confirmed', { state: {
             name: name,
             total: response.data.total,
             payment: 'upi'
           }});
-        }, 2000);
+        }, 1500);
       } else {
         navigate('/confirmed', { state: {
           name: name,
@@ -70,10 +59,6 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart }) {
           payment: 'cash'
         }});
       }
-    })
-    .catch(() => {
-      setOrdering(false);
-      alert('Failed to place order. Please try again.');
     });
   }
 
