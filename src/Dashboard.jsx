@@ -1,43 +1,61 @@
-import { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  getOrders,
+  updateOrderStatus as apiUpdateStatus,
+  confirmPayment as apiConfirmPayment,
+  extractErrorMessage,
+} from './api'
 import supabase from './supabaseClient'
 import './Dashboard.css'
 
+const TABS = ['Active', 'Ready', 'All Today']
+const AUTO_REFRESH_INTERVAL = 60000 // 60s fallback
+
 function Dashboard() {
-  const [orders, setOrders] = useState([])
+  // ── State ───────────────────────────────────────
+  const [ordersMap, setOrdersMap] = useState(new Map())
+  const [activeTab, setActiveTab] = useState('Active')
+  const [acknowledgedIds, setAcknowledgedIds] = useState(new Set())
+  const [error, setError] = useState('')
+
   const audioCtx = useRef(null)
   const bellInterval = useRef(null)
+  const autoRefreshRef = useRef(null)
 
-  // eslint-disable-next-line no-use-before-define
-  function playBell() {
-    if (!audioCtx.current) {
-      audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    const ctx = audioCtx.current;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5);
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 1);
-  }
-
-  function startRinging() {
+  // ── Audio helpers ───────────────────────────────
+  function ensureAudioCtx() {
     if (!audioCtx.current) {
       audioCtx.current = new (window.AudioContext || window.webkitAudioContext)()
     }
-    audioCtx.current.resume().then(() => {
+    return audioCtx.current
+  }
+
+  function playBell() {
+    const ctx = ensureAudioCtx()
+    const oscillator = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+
+    oscillator.connect(gainNode)
+    gainNode.connect(ctx.destination)
+
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5)
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
+
+    oscillator.start(ctx.currentTime)
+    oscillator.stop(ctx.currentTime + 1)
+  }
+
+  function startRinging() {
+    const ctx = ensureAudioCtx()
+    ctx.resume().then(() => {
       playBell()
-      bellInterval.current = setInterval(() => {
-        playBell()
-      }, 2000)
+      if (!bellInterval.current) {
+        bellInterval.current = setInterval(() => {
+          playBell()
+        }, 2000)
+      }
     })
   }
 
@@ -48,58 +66,169 @@ function Dashboard() {
     }
   }
 
-  // eslint-disable-next-line no-use-before-define
   function unlockAudio() {
-    if (!audioCtx.current) {
-      audioCtx.current = new (window.AudioContext || window.webkitAudioContext)()
-    }
-    audioCtx.current.resume()
+    ensureAudioCtx().resume()
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // ── Check if bell should ring ───────────────────
+  const checkBellState = useCallback((map, acked) => {
+    let unackedReceived = 0
+    map.forEach((order) => {
+      if (order.status === 'received' && !acked.has(order.id)) {
+        unackedReceived++
+      }
+    })
+    if (unackedReceived === 0) {
+      stopRinging()
+    }
+  }, [])
+
+  // ── Merge order into map ────────────────────────
+  const mergeOrder = useCallback((order) => {
+    setOrdersMap(prev => {
+      const next = new Map(prev)
+      next.set(order.id, order)
+      return next
+    })
+  }, [])
+
+  // ── Fetch orders ────────────────────────────────
+  const fetchOrders = useCallback(() => {
+    setError('')
+    getOrders()
+      .then(data => {
+        const map = new Map()
+        const list = Array.isArray(data) ? data : []
+        list.forEach(order => map.set(order.id, order))
+        setOrdersMap(map)
+      })
+      .catch(err => {
+        setError(extractErrorMessage(err))
+      })
+  }, [])
+
+  // ── Initial fetch + realtime subscription ───────
   useEffect(() => {
+    fetchOrders()
+
     const channel = supabase
       .channel('dashboard')
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => {
-          setOrders(prev => [payload.new, ...prev])
+          mergeOrder(payload.new)
           startRinging()
+        }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders' },
+        (payload) => {
+          mergeOrder(payload.new)
         }
       )
       .subscribe()
 
-    fetchOrders()
+    // Auto-refresh fallback every 60s
+    autoRefreshRef.current = setInterval(fetchOrders, AUTO_REFRESH_INTERVAL)
 
-    return () => supabase.removeChannel(channel)
+    return () => {
+      supabase.removeChannel(channel)
+      if (autoRefreshRef.current) clearInterval(autoRefreshRef.current)
+      stopRinging()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function fetchOrders() {
-    axios.get('https://chapter1-backend-1.onrender.com/orders')
-      .then(response => setOrders(response.data.reverse()))
-  }
+  // ── Check bell whenever orders or acks change ───
+  useEffect(() => {
+    checkBellState(ordersMap, acknowledgedIds)
+  }, [ordersMap, acknowledgedIds, checkBellState])
 
-  function updateStatus(orderId, status) {
-    stopRinging()
-    axios.patch(`https://chapter1-backend-1.onrender.com/orders/${orderId}/status`, {
-      status: status
-    }).then(() => {
-      setOrders(prev => prev.map(o =>
-        o.id === orderId ? {...o, status: status} : o
-      ))
+  // ── Actions ─────────────────────────────────────
+  function handleUpdateStatus(orderId, status) {
+    // Optimistic update
+    setOrdersMap(prev => {
+      const next = new Map(prev)
+      const order = next.get(orderId)
+      if (order) next.set(orderId, { ...order, status })
+      return next
+    })
+
+    apiUpdateStatus(orderId, status).catch(err => {
+      setError(extractErrorMessage(err))
+      fetchOrders() // rollback on error
     })
   }
 
-  function confirmPayment(orderId) {
-    axios.patch(`https://chapter1-backend-1.onrender.com/orders/${orderId}/payment`, {
-      payment_status: 'confirmed'
-    }).then(() => {
-      setOrders(prev => prev.map(o =>
-        o.id === orderId ? {...o, payment_status: 'confirmed'} : o
-      ))
+  function handleConfirmPayment(orderId) {
+    // Optimistic update
+    setOrdersMap(prev => {
+      const next = new Map(prev)
+      const order = next.get(orderId)
+      if (order) next.set(orderId, { ...order, payment_status: 'confirmed' })
+      return next
+    })
+
+    // Also acknowledge
+    setAcknowledgedIds(prev => new Set(prev).add(orderId))
+
+    apiConfirmPayment(orderId).catch(err => {
+      setError(extractErrorMessage(err))
+      fetchOrders()
     })
   }
 
+  function handleAcknowledge(orderId) {
+    setAcknowledgedIds(prev => new Set(prev).add(orderId))
+  }
+
+  function handleAcknowledgeAll() {
+    setAcknowledgedIds(prev => {
+      const next = new Set(prev)
+      ordersMap.forEach((order) => {
+        if (order.status === 'received') next.add(order.id)
+      })
+      return next
+    })
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem('dashboardAccess')
+    window.location.reload()
+  }
+
+  // ── Filter orders by tab ────────────────────────
+  const allOrders = Array.from(ordersMap.values()).sort((a, b) => {
+    // Newest first
+    return new Date(b.created_at) - new Date(a.created_at)
+  })
+
+  function getFilteredOrders() {
+    switch (activeTab) {
+      case 'Active':
+        return allOrders.filter(o =>
+          (o.status === 'received' || o.status === 'preparing') ||
+          (o.payment_status === 'pending')
+        )
+      case 'Ready':
+        return allOrders.filter(o => o.status === 'ready')
+      case 'All Today':
+      default:
+        return allOrders
+    }
+  }
+
+  const filteredOrders = getFilteredOrders()
+
+  // ── Count unacknowledged ────────────────────────
+  let unackedCount = 0
+  ordersMap.forEach(order => {
+    if (order.status === 'received' && !acknowledgedIds.has(order.id)) {
+      unackedCount++
+    }
+  })
+
+  // ── Status helpers ──────────────────────────────
   function getStatusBadge(status) {
     if (status === 'received') return '⏳ Received'
     if (status === 'preparing') return '👨‍🍳 Preparing'
@@ -113,95 +242,181 @@ function Dashboard() {
     return ''
   }
 
+  function formatTime(dateStr) {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  // ── Render ──────────────────────────────────────
   return (
     <div>
       <div className="dashboard-header">
-        <h1>📋 Receptionist Dashboard</h1>
-        <p>Live orders — updates automatically</p>
-        <button
-          onClick={unlockAudio}
-          style={{
-            marginTop: "10px",
-            background: "#c8951a",
-            border: "none",
-            color: "white",
-            padding: "8px 16px",
-            borderRadius: "20px",
-            cursor: "pointer",
-            fontSize: "13px",
-          }}
-        >
-          🔔 Enable Sound
-        </button>
+        <div className="dashboard-header-row">
+          <div>
+            <h1>📋 Staff Dashboard</h1>
+            <p>Live orders — updates automatically</p>
+          </div>
+          <button className="logout-btn" onClick={handleLogout}>
+            🚪 Logout
+          </button>
+        </div>
+        <div className="dashboard-header-actions">
+          <button onClick={unlockAudio} className="enable-sound-btn">
+            🔔 Enable Sound
+          </button>
+          {unackedCount > 0 && (
+            <button onClick={handleAcknowledgeAll} className="ack-all-btn">
+              ✓ Dismiss All ({unackedCount})
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* Error banner */}
+      {error && (
+        <div className="dashboard-error">
+          <span>⚠️ {error}</span>
+          <button onClick={() => setError('')}>✕</button>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="dashboard-tabs">
+        {TABS.map(tab => (
+          <button
+            key={tab}
+            className={`tab-btn ${activeTab === tab ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab}
+            {tab === 'Active' && (
+              <span className="tab-count">
+                {allOrders.filter(o =>
+                  (o.status === 'received' || o.status === 'preparing') ||
+                  (o.payment_status === 'pending')
+                ).length}
+              </span>
+            )}
+            {tab === 'Ready' && (
+              <span className="tab-count">
+                {allOrders.filter(o => o.status === 'ready').length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Orders list */}
       <div className="orders-list">
-        {orders.length === 0 && (
+        {filteredOrders.length === 0 && (
           <div className="no-orders">
-            <p>No orders yet</p>
-            <p style={{ fontSize: "13px", marginTop: "8px" }}>
-              New orders will appear here automatically
+            <p>No {activeTab.toLowerCase()} orders</p>
+            <p style={{ fontSize: '13px', marginTop: '8px' }}>
+              {activeTab === 'Active'
+                ? 'New orders will appear here automatically'
+                : 'No orders in this category'}
             </p>
           </div>
         )}
 
-        {orders.map((order, index) => (
-          <div
-            key={index}
-            className={`order-card ${getStatusClass(order.status)}`}
-          >
-            <div className="order-name">👤 {order.customer_name}</div>
-            <div className="order-phone">📞 {order.customer_phone}</div>
-            <div className="order-total">₹{order.total_amount / 100}</div>
+        {filteredOrders.map(order => {
+          const isUnacked = order.status === 'received' && !acknowledgedIds.has(order.id)
 
-            {order.payment_status === 'pending' && (
-              <div className="payment-pending-banner">
-                ⚠️ {order.payment_method === 'upi' ? 'UPI Payment Pending' : 'Cash Payment Pending'} — 
-                verify ₹{order.total_amount/100} before confirming
-                <button className="confirm-payment-btn" onClick={() => confirmPayment(order.id)}>
-                  ✅ Confirm Payment Received
+          return (
+            <div
+              key={order.id}
+              className={`order-card ${getStatusClass(order.status)} ${isUnacked ? 'order-new' : ''}`}
+            >
+              {/* Header row */}
+              <div className="order-card-header">
+                <div>
+                  <span className="order-number">#{order.id}</span>
+                  <span className="order-time">{formatTime(order.created_at)}</span>
+                </div>
+                {isUnacked && (
+                  <button
+                    className="ack-btn"
+                    onClick={() => handleAcknowledge(order.id)}
+                  >
+                    ✓ Acknowledge
+                  </button>
+                )}
+              </div>
+
+              <div className="order-name">👤 {order.customer_name}</div>
+              <div className="order-phone">📞 {order.customer_phone}</div>
+
+              {/* Order items */}
+              {order.items && order.items.length > 0 && (
+                <div className="order-items-list">
+                  {order.items.map((item, idx) => (
+                    <span key={idx} className="order-item-tag">
+                      {item.quantity}× {item.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="order-total">₹{order.total_amount / 100}</div>
+
+              {/* Payment status */}
+              {order.payment_status === 'pending' && (
+                <div className="payment-pending-banner">
+                  ⚠️ {order.payment_method === 'upi' ? 'UPI Payment Pending' : 'Cash Payment Pending'} —
+                  verify ₹{order.total_amount / 100} before confirming
+                  <button
+                    className="confirm-payment-btn"
+                    onClick={() => handleConfirmPayment(order.id)}
+                  >
+                    ✅ Confirm Payment Received
+                  </button>
+                </div>
+              )}
+
+              {order.payment_status === 'confirmed' && (
+                <div className="payment-confirmed-badge">
+                  💰 Payment Confirmed
+                  {order.payment_method === 'upi' && ' (UPI)'}
+                  {order.payment_method === 'cash' && ' (Cash)'}
+                </div>
+              )}
+
+              {/* Status badge */}
+              <div className={`order-status ${getStatusClass(order.status)}`}>
+                {getStatusBadge(order.status)}
+              </div>
+
+              {/* Action buttons */}
+              {order.status === 'received' && (
+                <button
+                  className="ready-btn"
+                  onClick={() => handleUpdateStatus(order.id, 'preparing')}
+                >
+                  👨‍🍳 Start Preparing
                 </button>
-              </div>
-            )}
+              )}
 
-            {order.payment_status === 'confirmed' && (
-              <div className="payment-confirmed-badge">
-                💰 Payment Confirmed
-              </div>
-            )}
+              {order.status === 'preparing' && (
+                <button
+                  className="ready-btn"
+                  onClick={() => handleUpdateStatus(order.id, 'ready')}
+                >
+                  ✅ Mark Ready
+                </button>
+              )}
 
-            <div className={`order-status ${getStatusClass(order.status)}`}>
-              {getStatusBadge(order.status)}
+              {order.status === 'ready' && (
+                <button className="ready-btn" disabled>
+                  Done
+                </button>
+              )}
             </div>
-
-            {order.status === "received" && (
-              <button
-                className="ready-btn"
-                onClick={() => updateStatus(order.id, "preparing")}
-              >
-                👨‍🍳 Start Preparing
-              </button>
-            )}
-
-            {order.status === "preparing" && (
-              <button
-                className="ready-btn"
-                onClick={() => updateStatus(order.id, "ready")}
-              >
-                ✅ Mark Ready
-              </button>
-            )}
-
-            {order.status === "ready" && (
-              <button className="ready-btn" disabled>
-                Done
-              </button>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
-  );
+  )
 }
 
 export default Dashboard

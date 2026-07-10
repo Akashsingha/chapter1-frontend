@@ -1,24 +1,24 @@
 import { useState } from 'react'
 import './Login.css'
-import axios from 'axios'
+import { verifyDashboardPassword, extractErrorMessage } from './api'
 
 function DashboardLogin({ onSuccess }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
   function handleLogin() {
-    axios.post('https://chapter1-backend-1.onrender.com/verify-dashboard-password', {
-      password: password
-    }).then(response => {
-      if (response.data.valid) {
-        sessionStorage.setItem('dashboardAccess', 'true')
-        onSuccess()
-      } else {
-        setError('Incorrect password')
-      }
-    }).catch(() => {
-      setError('Incorrect password')
-    })
+    verifyDashboardPassword(password)
+      .then(data => {
+        if (data.valid) {
+          sessionStorage.setItem('dashboardAccess', 'true')
+          onSuccess()
+        } else {
+          setError('Incorrect password')
+        }
+      })
+      .catch(err => {
+        setError(extractErrorMessage(err))
+      })
   }
 
   return (
