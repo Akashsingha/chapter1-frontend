@@ -284,6 +284,14 @@ function Payment() {
               </p>
               <p className="awaiting-amount">₹{amount}</p>
             </div>
+            
+            <button 
+              className="ive-paid-link" 
+              onClick={handleRetry}
+              style={{ marginTop: '20px', color: '#e53935' }}
+            >
+              Payment failed? Try again ↺
+            </button>
           </div>
         </div>
       </div>
