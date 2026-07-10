@@ -19,6 +19,20 @@ body {
   align-items: center;
 }
 
+.menu-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-logo {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #c8951a;
+}
+
 .menu-header h1 {
   font-size: 24px;
   letter-spacing: 2px;

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMenu } from "./api";
 import "./Menu.css";
+import logo from "./logo.jpg";
 
 function Menu({ cart, addToCart, syncCartPrices }) {
   const navigate = useNavigate();
@@ -52,7 +53,10 @@ function Menu({ cart, addToCart, syncCartPrices }) {
   return (
     <div>
       <div className="menu-header">
-        <h1>☕ Chapter 1</h1>
+        <div className="menu-header-brand">
+          <img src={logo} alt="Chapter 1 Logo" className="menu-logo" />
+          <h1>Chapter 1</h1>
+        </div>
         <button className="cart-btn" onClick={() => navigate("/cart")}>
           🛒 {totalItems} items
         </button>
