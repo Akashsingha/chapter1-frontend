@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createOrder, extractErrorMessage } from "./api";
 import "./Cart.css";
@@ -15,6 +15,8 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart, clearCart }) 
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  const orderLock = useRef(false); // Fix #6 — synchronous lock prevents double-tap
+
   function placeOrder() {
     const phoneRegex = /^[6-9]\d{9}$/;
 
@@ -25,15 +27,23 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart, clearCart }) 
       return;
     }
 
+    // Fix #6 — synchronous check (state updates are async and can miss fast taps)
+    if (orderLock.current) return;
+    orderLock.current = true;
+
     setPhoneError(false);
     setError("");
     setOrdering(true);
+
+    // Generate idempotency key to prevent server-side duplicates too
+    const idempotencyKey = `${phone}-${Date.now()}`;
 
     createOrder({
       customer_name: name,
       customer_phone: phone,
       items: cart,
       payment_method: payment,
+      idempotency_key: idempotencyKey,
     })
       .then((order) => {
         clearCart();
@@ -44,6 +54,7 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart, clearCart }) 
         }
       })
       .catch((err) => {
+        orderLock.current = false; // unlock on error so user can retry
         setOrdering(false);
         setError(extractErrorMessage(err));
       });

@@ -6,26 +6,49 @@ const UPI_NAME = process.env.REACT_APP_UPI_NAME || 'UDAY'
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 30000, // Fix #5 — increased from 15s to 30s for Render cold starts
 })
+
+/**
+ * Get the dashboard API key stored after successful login.
+ */
+function getDashboardKey() {
+  return localStorage.getItem('dashboardApiKey') || ''
+}
+
+/**
+ * Create an axios config with the dashboard auth header.
+ */
+function dashboardConfig() {
+  return {
+    headers: { 'X-Dashboard-Key': getDashboardKey() },
+  }
+}
 
 /**
  * Extract a user-friendly error message from an axios error.
  */
 function extractErrorMessage(error) {
   if (error.response) {
-    // Server responded with an error
     const data = error.response.data
     if (typeof data === 'string') return data
+    if (data?.detail) {
+      // FastAPI validation errors return an array of details
+      if (Array.isArray(data.detail)) {
+        return data.detail.map(d => d.msg || d).join('. ')
+      }
+      return data.detail
+    }
     if (data?.message) return data.message
     if (data?.error) return data.error
-    if (error.response.status === 400) return 'Invalid order. Please check your items and try again.'
+    if (error.response.status === 400) return 'Invalid request. Please check your input and try again.'
+    if (error.response.status === 403) return 'Access denied. Please log in again.'
     if (error.response.status === 404) return 'Order not found.'
     if (error.response.status >= 500) return 'Server error. Please try again in a moment.'
     return 'Something went wrong.'
   }
   if (error.code === 'ECONNABORTED') {
-    return 'Request timed out. The server may be starting up — please try again.'
+    return 'Request timed out. The server may be starting up — please try again in 30 seconds.'
   }
   if (!error.response) {
     return 'Could not connect to server. Check your connection and try again.'
@@ -36,18 +59,28 @@ function extractErrorMessage(error) {
 // ── Menu ──────────────────────────────────────────────────
 
 export async function getMenu() {
-  const response = await api.get('/menu')
-  return response.data
+  try {
+    const response = await api.get('/menu')
+    return response.data
+  } catch (err) {
+    // Fix #5 — retry once on timeout (Render cold start)
+    if (err.code === 'ECONNABORTED') {
+      const response = await api.get('/menu')
+      return response.data
+    }
+    throw err
+  }
 }
 
 // ── Orders (Customer) ────────────────────────────────────
 
-export async function createOrder({ customer_name, customer_phone, items, payment_method }) {
+export async function createOrder({ customer_name, customer_phone, items, payment_method, idempotency_key }) {
   const response = await api.post('/orders', {
     customer_name,
     customer_phone,
     items,
     payment_method,
+    idempotency_key, // Fix #6 — sent to backend for duplicate prevention
   })
   return response.data
 }
@@ -57,22 +90,32 @@ export async function getOrder(orderId) {
   return response.data
 }
 
-// ── Orders (Dashboard) ───────────────────────────────────
+// ── Orders (Dashboard — require API key) ─────────────────
 
 export async function getOrders(params = {}) {
-  const response = await api.get('/orders', { params })
+  const config = dashboardConfig()
+  config.params = params
+  const response = await api.get('/orders', config)
   return response.data
 }
 
 export async function updateOrderStatus(orderId, status) {
-  const response = await api.patch(`/orders/${orderId}/status`, { status })
+  const response = await api.patch(`/orders/${orderId}/status`, { status }, dashboardConfig())
   return response.data
 }
 
 export async function confirmPayment(orderId) {
-  const response = await api.patch(`/orders/${orderId}/payment`, {
-    payment_status: 'confirmed',
-  })
+  const response = await api.patch(
+    `/orders/${orderId}/payment`,
+    { payment_status: 'confirmed' },
+    dashboardConfig()
+  )
+  return response.data
+}
+
+// Fix #11 — Order cancellation
+export async function cancelOrder(orderId) {
+  const response = await api.patch(`/orders/${orderId}/cancel`, {}, dashboardConfig())
   return response.data
 }
 
@@ -95,6 +138,19 @@ export function getUpiString(order) {
   const amount = (order.total_amount / 100).toFixed(2)
   const note = `Order-${order.id}`
   return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
+}
+
+/**
+ * Open a UPI deep link using an anchor element click.
+ * More reliable than window.location.href on Android. (Fix #13)
+ */
+export function openUpiLink(upiString) {
+  const a = document.createElement('a')
+  a.href = upiString
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  setTimeout(() => document.body.removeChild(a), 100)
 }
 
 export { extractErrorMessage }

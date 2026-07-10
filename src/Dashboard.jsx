@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   getOrders,
+  getOrder,
   updateOrderStatus as apiUpdateStatus,
   confirmPayment as apiConfirmPayment,
+  cancelOrder as apiCancelOrder,
   extractErrorMessage,
 } from './api'
 import supabase from './supabaseClient'
@@ -116,7 +118,10 @@ function Dashboard() {
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => {
-          mergeOrder(payload.new)
+          // Fix #8 — fetch full order with items instead of using partial INSERT payload
+          getOrder(payload.new.id)
+            .then(fullOrder => mergeOrder(fullOrder))
+            .catch(() => mergeOrder(payload.new)) // fallback to partial data
           startRinging()
         }
       )
@@ -126,7 +131,15 @@ function Dashboard() {
           mergeOrder(payload.new)
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        // Fix #14 — auto-reconnect on channel error
+        if (status === 'CHANNEL_ERROR') {
+          setTimeout(() => {
+            supabase.removeChannel(channel)
+            fetchOrders()
+          }, 3000)
+        }
+      })
 
     // Auto-refresh fallback every 60s
     autoRefreshRef.current = setInterval(fetchOrders, AUTO_REFRESH_INTERVAL)
@@ -192,8 +205,27 @@ function Dashboard() {
     })
   }
 
+  // Fix #11 — Cancel order
+  function handleCancelOrder(orderId) {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return
+
+    // Optimistic update
+    setOrdersMap(prev => {
+      const next = new Map(prev)
+      const order = next.get(orderId)
+      if (order) next.set(orderId, { ...order, status: 'cancelled' })
+      return next
+    })
+
+    apiCancelOrder(orderId).catch(err => {
+      setError(extractErrorMessage(err))
+      fetchOrders()
+    })
+  }
+
   function handleLogout() {
     sessionStorage.removeItem('dashboardAccess')
+    localStorage.removeItem('dashboardApiKey')
     window.location.reload()
   }
 
@@ -233,12 +265,14 @@ function Dashboard() {
     if (status === 'received') return '⏳ Received'
     if (status === 'preparing') return '👨‍🍳 Preparing'
     if (status === 'ready') return '✅ Ready'
+    if (status === 'cancelled') return '❌ Cancelled'
     return status
   }
 
   function getStatusClass(status) {
     if (status === 'preparing') return 'preparing'
     if (status === 'ready') return 'ready'
+    if (status === 'cancelled') return 'cancelled'
     return ''
   }
 
@@ -409,6 +443,22 @@ function Dashboard() {
               {order.status === 'ready' && (
                 <button className="ready-btn" disabled>
                   Done
+                </button>
+              )}
+
+              {/* Fix #11 — Cancel button for received orders */}
+              {order.status === 'received' && (
+                <button
+                  className="cancel-order-btn"
+                  onClick={() => handleCancelOrder(order.id)}
+                >
+                  ❌ Cancel Order
+                </button>
+              )}
+
+              {order.status === 'cancelled' && (
+                <button className="ready-btn" disabled style={{ opacity: 0.5 }}>
+                  Cancelled
                 </button>
               )}
             </div>

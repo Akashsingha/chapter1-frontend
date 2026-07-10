@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getMenu } from "./api";
 import "./Menu.css";
 
-function Menu({ cart, addToCart }) {
+function Menu({ cart, addToCart, syncCartPrices }) {
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
   const [addedItem, setAddedItem] = useState(null);
@@ -16,6 +16,8 @@ function Menu({ cart, addToCart }) {
     getMenu()
       .then((data) => {
         setMenuItems(data);
+        // Fix #15 — sync stale cart prices with fresh menu prices
+        if (syncCartPrices) syncCartPrices(data);
         setLoading(false);
       })
       .catch((err) => {

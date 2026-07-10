@@ -281,6 +281,34 @@
   cursor: default;
 }
 
+.cancel-order-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px;
+  background-color: transparent;
+  color: #e53935;
+  border: 1px solid #e53935;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.cancel-order-btn:active {
+  background-color: #e53935;
+  color: white;
+}
+
+.order-card.cancelled {
+  border-left: 4px solid #ccc;
+  opacity: 0.5;
+}
+
+.order-status.cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
 /* ── Payment banners ────────────────────────────── */
 
 .payment-pending-banner {

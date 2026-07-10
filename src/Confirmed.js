@@ -52,7 +52,14 @@ function Confirmed() {
           setOrder(prev => prev ? { ...prev, ...payload.new } : payload.new)
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        // Fix #14 — auto-reconnect on channel error
+        if (status === 'CHANNEL_ERROR') {
+          setTimeout(() => {
+            supabase.removeChannel(channel)
+          }, 3000)
+        }
+      })
 
     return () => supabase.removeChannel(channel)
   }, [orderId])
@@ -135,7 +142,7 @@ function Confirmed() {
           <div className="confirmed-items">
             {order.items.map((item, idx) => (
               <div key={idx} className="confirmed-item-row">
-                <span>{item.quantity}× {item.name}</span>
+                <span>{item.quantity}× {item.name || item.item_name}</span>
                 <span>₹{(item.price * item.quantity) / 100}</span>
               </div>
             ))}

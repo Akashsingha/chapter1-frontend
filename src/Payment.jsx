@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { getOrder, getUpiString, extractErrorMessage } from "./api";
+import { getOrder, getUpiString, openUpiLink, extractErrorMessage } from "./api";
 import supabase from "./supabaseClient";
 import "./Payment.css";
 
@@ -88,7 +88,15 @@ function Payment() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        // Fix #14 — auto-reconnect on channel error
+        if (status === 'CHANNEL_ERROR') {
+          setTimeout(() => {
+            supabase.removeChannel(channelRef.current);
+            startPolling(); // re-subscribe
+          }, 3000);
+        }
+      });
 
     // 15-minute expiry timer
     expiryRef.current = setTimeout(() => {
@@ -132,7 +140,8 @@ function Payment() {
 
     // Show animation for 1.5s, then redirect to UPI app
     setTimeout(() => {
-      window.location.href = getUpiString(order);
+      // Fix #13 — Use anchor click instead of window.location.href
+      openUpiLink(getUpiString(order));
 
       // After redirect attempt, move to awaiting
       // (visibilitychange will also catch this)
