@@ -4,12 +4,6 @@
   padding: 20px;
 }
 
-.dashboard-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
 .dashboard-header h1 {
   font-size: 22px;
   letter-spacing: 2px;
@@ -21,115 +15,8 @@
   margin-top: 4px;
 }
 
-.dashboard-header-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.enable-sound-btn {
-  background: #c8951a;
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.ack-all-btn {
-  background: #4caf50;
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.logout-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fdf6ec;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-/* ── Tabs ───────────────────────────────────────── */
-
-.dashboard-tabs {
-  display: flex;
-  background: white;
-  border-bottom: 2px solid #f0e8db;
-  padding: 0 16px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 14px 8px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  color: #888;
-  transition: all 0.2s ease;
-}
-
-.tab-btn.tab-active {
-  color: #3b2a1a;
-  border-bottom-color: #c8951a;
-}
-
-.tab-count {
-  display: inline-block;
-  background: #f0e8db;
-  color: #3b2a1a;
-  font-size: 11px;
-  font-weight: bold;
-  padding: 2px 7px;
-  border-radius: 10px;
-  margin-left: 6px;
-}
-
-.tab-active .tab-count {
-  background: #c8951a;
-  color: white;
-}
-
-/* ── Error banner ───────────────────────────────── */
-
-.dashboard-error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff3cd;
-  border-bottom: 1px solid #ffc107;
-  padding: 10px 16px;
-  font-size: 13px;
-  color: #856404;
-}
-
-.dashboard-error button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: #856404;
-  padding: 0 4px;
-}
-
-/* ── Orders list ────────────────────────────────── */
-
 .orders-list {
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -141,61 +28,12 @@
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-left: 4px solid #c8951a;
-  transition: border-color 0.2s ease;
-}
-
-.order-card.order-new {
-  border-left-color: #e53935;
-  animation: pulseHighlight 2s ease-in-out infinite;
-}
-
-@keyframes pulseHighlight {
-  0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  50% { box-shadow: 0 2px 16px rgba(229, 57, 53, 0.2); }
 }
 
 .order-card.ready {
   border-left: 4px solid #4caf50;
   opacity: 0.7;
 }
-
-.order-card.preparing {
-  border-left: 4px solid #ff9800;
-}
-
-/* ── Order card header ──────────────────────────── */
-
-.order-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.order-number {
-  font-size: 14px;
-  font-weight: bold;
-  color: #c8951a;
-}
-
-.order-time {
-  font-size: 12px;
-  color: #aaa;
-  margin-left: 8px;
-}
-
-.ack-btn {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* ── Order details ──────────────────────────────── */
 
 .order-name {
   font-size: 16px;
@@ -209,32 +47,12 @@
   margin-top: 2px;
 }
 
-.order-items-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.order-item-tag {
-  display: inline-block;
-  background: #fdf6ec;
-  color: #3b2a1a;
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid #f0e8db;
-}
-
 .order-total {
   font-size: 15px;
   color: #c8951a;
   font-weight: bold;
   margin-top: 8px;
 }
-
-/* ── Status badges ──────────────────────────────── */
 
 .order-status {
   display: inline-block;
@@ -252,13 +70,6 @@
   color: #155724;
 }
 
-.order-status.preparing {
-  background-color: #fff3e0;
-  color: #e65100;
-}
-
-/* ── Action buttons ─────────────────────────────── */
-
 .ready-btn {
   margin-top: 12px;
   width: 100%;
@@ -269,11 +80,6 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s ease;
-}
-
-.ready-btn:active {
-  background-color: #c8951a;
 }
 
 .ready-btn:disabled {
@@ -281,8 +87,21 @@
   cursor: default;
 }
 
-/* ── Payment banners ────────────────────────────── */
+.no-orders {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+  font-size: 16px;
+}
 
+.order-card.preparing {
+  border-left: 4px solid #ff9800;
+}
+
+.order-status.preparing {
+  background-color: #fff3e0;
+  color: #e65100;
+}
 .payment-pending-banner {
   background: #fff3cd;
   border: 1px solid #ffc107;
@@ -303,7 +122,6 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  font-weight: bold;
 }
 
 .payment-confirmed-badge {
@@ -315,13 +133,4 @@
   font-weight: bold;
   margin: 8px 0;
   display: inline-block;
-}
-
-/* ── No orders ──────────────────────────────────── */
-
-.no-orders {
-  text-align: center;
-  padding: 60px 20px;
-  color: #888;
-  font-size: 16px;
 }

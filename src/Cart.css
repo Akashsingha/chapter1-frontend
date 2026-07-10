@@ -216,15 +216,3 @@
   50% { transform: translateX(8px); }
   75% { transform: translateX(-8px); }
 }
-
-/* ── Order error banner ─────────────────────────── */
-
-.order-error-banner {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #856404;
-  line-height: 1.4;
-}
