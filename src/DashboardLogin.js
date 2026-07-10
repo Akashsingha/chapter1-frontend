@@ -24,7 +24,6 @@ function DashboardLogin({ onSuccess }) {
           if (data.api_key) {
             localStorage.setItem('dashboardApiKey', data.api_key)
           }
-          sessionStorage.setItem('dashboardAccess', 'true')
           onSuccess()
         } else {
           setError('Incorrect password')

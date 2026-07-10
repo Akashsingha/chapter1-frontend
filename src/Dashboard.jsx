@@ -224,7 +224,7 @@ function Dashboard() {
   }
 
   function handleLogout() {
-    sessionStorage.removeItem('dashboardAccess')
+    localStorage.removeItem('dashboardAccess')
     localStorage.removeItem('dashboardApiKey')
     window.location.reload()
   }
