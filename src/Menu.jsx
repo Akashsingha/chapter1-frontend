@@ -64,8 +64,8 @@ function Menu({ cart, addToCart, syncCartPrices }) {
     // Fetch the current status from the server
     getOrder(parsed.id)
       .then((order) => {
-        if (order.status === "cancelled") {
-          // Order was cancelled — no point tracking it
+        if (order.status === "cancelled" || order.status === "completed") {
+          // Order was cancelled or picked up — no point tracking it
           localStorage.removeItem("activeOrder");
           return;
         }
@@ -95,8 +95,26 @@ function Menu({ cart, addToCart, syncCartPrices }) {
         },
         (payload) => {
           const newStatus = payload.new.status;
+          
+          if (newStatus === "ready" && orderStatus !== "ready") {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            try {
+              const ctx = new (window.AudioContext || window.webkitAudioContext)();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(880, ctx.currentTime);
+              gain.gain.setValueAtTime(0.5, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+              osc.start(ctx.currentTime);
+              osc.stop(ctx.currentTime + 0.5);
+            } catch (e) { /* ignore */ }
+          }
+          
           setOrderStatus(newStatus);
-          if (newStatus === "cancelled") {
+          if (newStatus === "cancelled" || newStatus === "completed") {
             localStorage.removeItem("activeOrder");
             setActiveOrder(null);
           }

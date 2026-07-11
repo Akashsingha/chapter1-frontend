@@ -319,8 +319,8 @@ function Dashboard() {
     switch (activeTab) {
       case 'Active':
         return allOrders.filter(o =>
-          (o.status === 'received' || o.status === 'preparing') ||
-          (o.payment_status === 'pending')
+          (o.status === 'received' || o.status === 'preparing' || (o.payment_method === 'upi' && o.payment_status === 'pending')) &&
+          o.status !== 'cancelled' && o.status !== 'completed'
         )
       case 'Ready':
         return allOrders.filter(o => o.status === 'ready')
@@ -345,6 +345,7 @@ function Dashboard() {
     if (status === 'received') return '⏳ Received'
     if (status === 'preparing') return '👨‍🍳 Preparing'
     if (status === 'ready') return '✅ Ready'
+    if (status === 'completed') return '🛍️ Picked Up'
     if (status === 'cancelled') return '❌ Cancelled'
     return status
   }
@@ -352,6 +353,7 @@ function Dashboard() {
   function getStatusClass(status) {
     if (status === 'preparing') return 'preparing'
     if (status === 'ready') return 'ready'
+    if (status === 'completed') return 'completed'
     if (status === 'cancelled') return 'cancelled'
     return ''
   }
@@ -407,8 +409,8 @@ function Dashboard() {
             {tab === 'Active' && (
               <span className="tab-count">
                 {allOrders.filter(o =>
-                  (o.status === 'received' || o.status === 'preparing') ||
-                  (o.payment_status === 'pending')
+                  (o.status === 'received' || o.status === 'preparing' || (o.payment_method === 'upi' && o.payment_status === 'pending')) &&
+                  o.status !== 'cancelled' && o.status !== 'completed'
                 ).length}
               </span>
             )}
@@ -571,8 +573,11 @@ function Dashboard() {
                 )}
 
                 {order.status === 'ready' && (
-                  <button className="ready-btn" disabled>
-                    Done
+                  <button 
+                    className="ready-btn"
+                    onClick={() => handleUpdateStatus(order.id, 'completed')}
+                  >
+                    🛍️ Picked Up
                   </button>
                 )}
 
@@ -586,9 +591,9 @@ function Dashboard() {
                   </button>
                 )}
 
-                {order.status === 'cancelled' && (
+                {(order.status === 'cancelled' || order.status === 'completed') && (
                   <button className="ready-btn" disabled style={{ opacity: 0.5 }}>
-                    Cancelled
+                    {order.status === 'completed' ? 'Completed' : 'Cancelled'}
                   </button>
                 )}
               </div>

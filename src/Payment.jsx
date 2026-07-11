@@ -341,7 +341,7 @@ function Payment() {
             fgColor="#3b2a1a"
             level="M"
           />
-          <p className="qr-label">Scan with any UPI app</p>
+          <p className="qr-label">Tap 'Pay Now' below, OR scan this QR with another phone</p>
         </div>
 
         {/* Pay Now button */}
