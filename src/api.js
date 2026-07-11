@@ -119,6 +119,18 @@ export async function cancelOrder(orderId) {
   return response.data
 }
 
+// Acknowledge an order — stored in DB so it syncs across all staff devices
+export async function acknowledgeOrder(orderId) {
+  const response = await api.patch(`/orders/${orderId}/acknowledge`, {}, dashboardConfig())
+  return response.data
+}
+
+// Toggle a menu item's availability (available ↔ sold out)
+export async function toggleMenuAvailability(itemId) {
+  const response = await api.patch(`/menu/${itemId}/availability`, {}, dashboardConfig())
+  return response.data
+}
+
 // ── Dashboard Auth ───────────────────────────────────────
 
 export async function verifyDashboardPassword(password) {

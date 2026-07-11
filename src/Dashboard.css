@@ -353,3 +353,109 @@
   color: #888;
   font-size: 16px;
 }
+
+/* ── Menu Management Tab ────────────────────────── */
+
+.menu-management {
+  padding: 16px;
+}
+
+.menu-management-header {
+  margin-bottom: 16px;
+}
+
+.menu-management-header h2 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #3b2a1a;
+  margin-bottom: 4px;
+}
+
+.menu-management-header p {
+  font-size: 13px;
+  color: #888;
+}
+
+.menu-mgmt-loading {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-size: 14px;
+}
+
+.menu-mgmt-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-mgmt-card {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  border-left: 4px solid #c8951a;
+  transition: all 0.2s ease;
+}
+
+.menu-mgmt-card.menu-mgmt-unavailable {
+  border-left-color: #ccc;
+  opacity: 0.65;
+}
+
+.menu-mgmt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-mgmt-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #3b2a1a;
+}
+
+.menu-mgmt-category {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-mgmt-price {
+  font-size: 13px;
+  color: #c8951a;
+  font-weight: 600;
+}
+
+.menu-mgmt-toggle {
+  border: none;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.menu-mgmt-toggle.toggle-available {
+  background: #d4edda;
+  color: #155724;
+}
+
+.menu-mgmt-toggle.toggle-available:active {
+  background: #c3e6cb;
+}
+
+.menu-mgmt-toggle.toggle-soldout {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.menu-mgmt-toggle.toggle-soldout:active {
+  background: #f5c6cb;
+}

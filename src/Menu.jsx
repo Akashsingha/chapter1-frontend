@@ -43,7 +43,9 @@ function Menu({ cart, addToCart, syncCartPrices }) {
     setTimeout(() => setAddedItem(null), 1000);
   }
 
-  const grouped = menuItems.reduce((acc, item) => {
+  const grouped = menuItems
+    .filter(item => item.is_available !== false) // hide sold-out items from customers
+    .reduce((acc, item) => {
     const category = item.category || "Others";
     if (!acc[category]) acc[category] = [];
     acc[category].push(item);

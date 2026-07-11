@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './Login.css'
 import { verifyDashboardPassword, extractErrorMessage } from './api'
 
-function DashboardLogin({ onSuccess }) {
+function DashboardLogin({ onSuccess, sessionExpired }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false) // Fix #19 — loading state
@@ -39,6 +39,11 @@ function DashboardLogin({ onSuccess }) {
     <div className="login-container">
       <div className="login-card">
         <h1>🔒 Staff Access</h1>
+        {sessionExpired && (
+          <p className="login-error" style={{ marginBottom: '12px' }}>
+            ⏰ Session expired after 8 hours. Please log in again.
+          </p>
+        )}
         <input
           type="password"
           placeholder="Enter password"

@@ -7,20 +7,51 @@ import Confirmed from './Confirmed'
 import Payment from './Payment'
 import DashboardLogin from './DashboardLogin'
 
+const SESSION_DURATION_MS = 8 * 60 * 60 * 1000 // 8 hours
+
+function isSessionValid() {
+  if (localStorage.getItem('dashboardAccess') !== 'true') return false
+  const expiry = parseInt(localStorage.getItem('dashboardExpiry') || '0', 10)
+  return Date.now() < expiry
+}
+
+function clearSession() {
+  localStorage.removeItem('dashboardAccess')
+  localStorage.removeItem('dashboardExpiry')
+  localStorage.removeItem('dashboardApiKey')
+}
+
 // Fix #20 — Use localStorage so staff don't have to re-login every tab
+// Now with 8-hour expiry so sessions don't last forever
 function ProtectedDashboard() {
-  const [hasAccess, setHasAccess] = useState(
-    localStorage.getItem('dashboardAccess') === 'true'
-  )
+  const [hasAccess, setHasAccess] = useState(() => {
+    if (!isSessionValid()) {
+      clearSession()
+      return false
+    }
+    return true
+  })
+  const [sessionExpired, setSessionExpired] = useState(() => {
+    // Show "session expired" message only if they had a key before but it expired
+    const hadAccess = localStorage.getItem('dashboardAccess') === 'true'
+    const expiry = parseInt(localStorage.getItem('dashboardExpiry') || '0', 10)
+    return hadAccess && expiry > 0 && Date.now() >= expiry
+  })
 
   if (hasAccess) {
     return <Dashboard />
   }
-  return <DashboardLogin onSuccess={() => {
-    localStorage.setItem('dashboardAccess', 'true')
-    setHasAccess(true)
-  }} />
+  return <DashboardLogin
+    sessionExpired={sessionExpired}
+    onSuccess={() => {
+      localStorage.setItem('dashboardAccess', 'true')
+      localStorage.setItem('dashboardExpiry', String(Date.now() + SESSION_DURATION_MS))
+      setSessionExpired(false)
+      setHasAccess(true)
+    }}
+  />
 }
+
 
 // Fix #17 — Friendly 404 page
 function NotFound() {
