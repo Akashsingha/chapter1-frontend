@@ -153,17 +153,25 @@ export function getUpiString(order) {
   return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
 }
 
-/**
- * Open a UPI deep link using an anchor element click.
- * More reliable than window.location.href on Android. (Fix #13)
- */
 export function openUpiLink(upiString) {
   const a = document.createElement('a')
   a.href = upiString
-  a.style.display = 'none'
+  a.target = '_self'
   document.body.appendChild(a)
   a.click()
-  setTimeout(() => document.body.removeChild(a), 100)
+  document.body.removeChild(a)
+}
+
+/**
+ * Returns specific app URIs for iOS devices by replacing the generic upi://
+ */
+export function getSpecificAppUpiLink(upiString, app) {
+  switch (app) {
+    case 'gpay': return upiString.replace('upi://pay', 'gpay://upi/pay')
+    case 'phonepe': return upiString.replace('upi://pay', 'phonepe://pay')
+    case 'paytm': return upiString.replace('upi://pay', 'paytmmp://pay')
+    default: return upiString
+  }
 }
 
 export { extractErrorMessage }

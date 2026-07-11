@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { getOrder, getUpiString, openUpiLink, extractErrorMessage } from "./api";
+import { getOrder, getUpiString, openUpiLink, getSpecificAppUpiLink, extractErrorMessage } from "./api";
 import supabase from "./supabaseClient";
 import "./Payment.css";
 
@@ -134,14 +134,17 @@ function Payment() {
   }, [pageState, startPolling, stopPolling]);
 
   // ── Pay Now handler ─────────────────────────────
-  function handlePayNow() {
+  function handlePayNow(app = null) {
     if (!order) return;
     setPageState("redirecting");
 
     // Show animation for 1.5s, then redirect to UPI app
     setTimeout(() => {
+      const baseUpi = getUpiString(order);
+      const finalUpi = app ? getSpecificAppUpiLink(baseUpi, app) : baseUpi;
+      
       // Fix #13 — Use anchor click instead of window.location.href
-      openUpiLink(getUpiString(order));
+      openUpiLink(finalUpi);
 
       // After redirect attempt, move to awaiting
       // (visibilitychange will also catch this)
@@ -209,6 +212,9 @@ function Payment() {
 
   const upiString = order ? getUpiString(order) : "";
   const amount = order ? (order.total_amount / 100).toFixed(2) : "0.00";
+  
+  // Detect iOS to show specific app buttons instead of generic prompt
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   if (pageState === "confirmed") {
     return (
@@ -344,10 +350,24 @@ function Payment() {
           <p className="qr-label">Tap 'Pay Now' below, OR scan this QR with another phone</p>
         </div>
 
-        {/* Pay Now button */}
-        <button className="pay-now-btn" onClick={handlePayNow}>
-          📱 Pay Now — ₹{amount}
-        </button>
+        {/* Pay buttons */}
+        {isIOS ? (
+          <div className="ios-pay-buttons" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+            <button className="pay-now-btn" style={{ background: '#1a73e8' }} onClick={() => handlePayNow('gpay')}>
+              📱 Pay with GPay — ₹{amount}
+            </button>
+            <button className="pay-now-btn" style={{ background: '#5e35b1' }} onClick={() => handlePayNow('phonepe')}>
+              📱 Pay with PhonePe — ₹{amount}
+            </button>
+            <button className="pay-now-btn" style={{ background: '#00baf2', color: '#fff' }} onClick={() => handlePayNow('paytm')}>
+              📱 Pay with Paytm — ₹{amount}
+            </button>
+          </div>
+        ) : (
+          <button className="pay-now-btn" onClick={() => handlePayNow()}>
+            📱 Pay Now — ₹{amount}
+          </button>
+        )}
 
         {/* I've paid link */}
         <button className="ive-paid-link" onClick={handleIvePaid}>
