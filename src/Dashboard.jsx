@@ -120,15 +120,36 @@ function Dashboard() {
         (payload) => {
           // Fix #8 — fetch full order with items instead of using partial INSERT payload
           getOrder(payload.new.id)
-            .then(fullOrder => mergeOrder(fullOrder))
-            .catch(() => mergeOrder(payload.new)) // fallback to partial data
-          startRinging()
+            .then(fullOrder => {
+              mergeOrder(fullOrder)
+              // Only ring immediately for cash orders — UPI orders ring when payment is confirmed
+              if (fullOrder.payment_method !== 'upi') {
+                startRinging()
+              }
+            })
+            .catch(() => {
+              mergeOrder(payload.new) // fallback to partial data
+              // Fallback: ring only if not a UPI order
+              if (payload.new.payment_method !== 'upi') {
+                startRinging()
+              }
+            })
         }
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders' },
         (payload) => {
-          mergeOrder(payload.new)
+          const prev = payload.old
+          const next = payload.new
+          mergeOrder(next)
+          // Ring when a UPI payment is confirmed
+          if (
+            next.payment_method === 'upi' &&
+            next.payment_status === 'confirmed' &&
+            prev.payment_status !== 'confirmed'
+          ) {
+            startRinging()
+          }
         }
       )
       .subscribe((status) => {
