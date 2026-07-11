@@ -46,7 +46,18 @@ function Cart({ cart, removeFromCart, decreaseQuantity, addToCart, clearCart }) 
       idempotency_key: idempotencyKey,
     })
       .then((order) => {
-        clearCart();
+        // Save to localStorage so the menu page can show a live tracking banner
+        try {
+          localStorage.setItem('activeOrder', JSON.stringify({
+            id: order.id,
+            placedAt: Date.now(),
+            total: order.total_amount,
+            paymentMethod: order.payment_method,
+          }))
+        } catch {
+          // localStorage full or unavailable — tracking just won't show, order still placed
+        }
+        clearCart()
         if (payment === "upi") {
           navigate(`/payment/${order.id}`);
         } else {
