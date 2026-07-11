@@ -495,7 +495,7 @@ function Dashboard() {
                 {/* Header row */}
                 <div className="order-card-header">
                   <div>
-                    <span className="order-number">#{order.id}</span>
+                    <span className="order-number">#{order.order_number || order.id.substring(0,4).toUpperCase()}</span>
                     <span className="order-time">{formatTime(order.created_at)}</span>
                   </div>
                   {isUnacked && (

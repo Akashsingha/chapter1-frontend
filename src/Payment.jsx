@@ -241,7 +241,7 @@ function Payment() {
               <p>
                 Or pay <strong>₹{amount}</strong> at the counter
               </p>
-              <p className="order-ref">Order #{order?.id}</p>
+              <p className="order-ref">Order #{order?.order_number || order?.id?.substring(0,4).toUpperCase()}</p>
             </div>
           </div>
         </div>
@@ -280,7 +280,7 @@ function Payment() {
             </p>
             <div className="awaiting-order-ref">
               <p>
-                Quote <strong>Order #{order?.id}</strong> at the counter
+                Quote <strong>Order #{order?.order_number || order?.id?.substring(0,4).toUpperCase()}</strong> at the counter
               </p>
               <p className="awaiting-amount">₹{amount}</p>
             </div>
@@ -304,7 +304,7 @@ function Payment() {
       <div className="payment-card">
         <div className="payment-header-section">
           <h2>Complete Payment</h2>
-          <p className="payment-order-id">Order #{order?.id}</p>
+          <p className="payment-order-id">Order #{order?.order_number || order?.id?.substring(0,4).toUpperCase()}</p>
         </div>
 
         {/* Order items summary */}

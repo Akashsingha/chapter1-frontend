@@ -126,7 +126,7 @@ function Confirmed() {
             Your order has been received. Please pay{' '}
             <strong>₹{amount}</strong> at the counter.
             <br />
-            <span className="confirmed-order-ref">Order #{order.id}</span>
+            <span className="confirmed-order-ref">Order #{order.order_number || order.id.substring(0,4).toUpperCase()}</span>
           </p>
         )}
 

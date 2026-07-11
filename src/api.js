@@ -148,7 +148,8 @@ export function getUpiString(order) {
   if (order.upi_string) return order.upi_string
 
   const amount = (order.total_amount / 100).toFixed(2)
-  const note = `Order-${order.id}`
+  // Shorten the note for UPI limit compatibility and readability
+  const note = `Order-${order.order_number || order.id.substring(0,4).toUpperCase()}`
   return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`
 }
 
