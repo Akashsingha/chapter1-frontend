@@ -1,62 +1,107 @@
+/* ─────────────────────────────────────────────────
+   Confirmed.css — Chapter 1 Cafe (Glassmorphic Dark)
+───────────────────────────────────────────────── */
+
+/* ── Page shell ────────────────────────────────── */
 .confirmed-container {
   min-height: 100vh;
-  background-color: #fdf6ec;
+  background: radial-gradient(ellipse at top, #0d1a0e 0%, var(--bg) 65%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px 20px;
+  animation: pageEnter 0.42s cubic-bezier(0.4,0,0.2,1) both;
 }
 
+/* ── Card ──────────────────────────────────────── */
 .confirmed-card {
-  background: white;
-  border-radius: 20px;
-  padding: 32px 24px;
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 28px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  max-width: 380px;
+  max-width: 400px;
   width: 100%;
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 24px 64px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  position: relative;
+  overflow: hidden;
+  animation: cardAppear 0.55s cubic-bezier(0.4,0,0.2,1) both;
 }
 
+@keyframes cardAppear {
+  from { opacity: 0; transform: scale(0.92) translateY(24px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Gold top shimmer */
+.confirmed-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(74,222,128,0.60), transparent);
+}
+
+/* ── Icon ──────────────────────────────────────── */
 .confirmed-icon {
-  font-size: 56px;
-  margin-bottom: 16px;
+  font-size: 64px;
+  margin-bottom: 18px;
+  display: block;
+  animation: iconPop 0.50s cubic-bezier(0.4,0,0.2,1) 0.15s both;
+  filter: drop-shadow(0 0 22px rgba(74,222,128,0.55));
 }
 
+@keyframes iconPop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  65%  { transform: scale(1.20) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ── Headings ──────────────────────────────────── */
 .confirmed-card h1 {
   font-size: 26px;
-  color: #3b2a1a;
+  font-weight: 700;
+  color: var(--cream);
   margin-bottom: 8px;
+  letter-spacing: 0.5px;
 }
 
 .confirmed-name {
   font-size: 16px;
-  color: #c8951a;
-  font-weight: bold;
-  margin-bottom: 16px;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 18px;
+  text-shadow: 0 0 12px var(--gold-glow-sm);
 }
 
 .confirmed-message {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--cream-muted);
+  line-height: 1.7;
+  margin-bottom: 22px;
 }
 
 .confirmed-order-ref {
   display: inline-block;
   margin-top: 6px;
-  font-size: 13px;
-  color: #c8951a;
-  font-weight: bold;
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-/* ── Order items ────────────────────────────────── */
-
+/* ── Order items ───────────────────────────────── */
 .confirmed-items {
-  background: #fdf6ec;
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 22px;
   text-align: left;
 }
 
@@ -64,17 +109,16 @@
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #555;
-  padding: 3px 0;
+  color: var(--cream-muted);
+  padding: 4px 0;
 }
 
-/* ── Status tracker ─────────────────────────────── */
-
+/* ── Status tracker ────────────────────────────── */
 .confirmed-status {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   gap: 0;
 }
 
@@ -83,8 +127,8 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  opacity: 0.35;
-  transition: opacity 0.3s ease;
+  opacity: 0.28;
+  transition: opacity 0.4s ease, filter 0.4s ease;
 }
 
 .status-step.active {
@@ -92,74 +136,114 @@
 }
 
 .status-step span {
-  font-size: 24px;
+  font-size: 26px;
+  transition: filter 0.4s ease;
+}
+
+.status-step.active span {
+  filter: drop-shadow(0 0 10px var(--gold-glow));
 }
 
 .status-step p {
-  font-size: 11px;
-  color: #3b2a1a;
-  font-weight: bold;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cream-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-step.active p {
+  color: var(--gold);
 }
 
 .status-divider {
-  width: 40px;
+  width: 36px;
   height: 2px;
-  background-color: #ddd;
-  margin: 0 8px;
-  margin-bottom: 18px;
-  transition: background-color 0.3s ease;
+  background: var(--surface-hover);
+  margin: 0 6px;
+  margin-bottom: 20px;
+  border-radius: 2px;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
 }
 
 .status-divider.active-divider {
-  background-color: #c8951a;
+  background: var(--gold);
+  box-shadow: 0 0 10px var(--gold-glow-sm);
 }
 
+/* ── Notes ─────────────────────────────────────── */
 .confirmed-note {
-  font-size: 13px;
-  color: #888;
+  font-size: 12px;
+  color: var(--cream-muted);
   margin-bottom: 28px;
+  line-height: 1.6;
 }
 
 .confirmed-ready-note {
-  color: #4caf50;
-  font-weight: bold;
+  color: var(--green);
+  font-weight: 700;
+  display: block;
+  margin-top: 6px;
+  filter: drop-shadow(0 0 8px var(--green-glow));
+  animation: readyBlink 2s ease-in-out infinite;
 }
 
-/* ── Loading state ──────────────────────────────── */
+@keyframes readyBlink {
+  0%, 100% { opacity: 1;   }
+  50%       { opacity: 0.6; }
+}
 
+/* ── Loading state ─────────────────────────────── */
 .confirmed-loading {
-  padding: 40px 0;
+  padding: 50px 0;
+  text-align: center;
 }
 
 .confirmed-loading p {
-  color: #888;
+  color: var(--cream-muted);
   font-size: 14px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .confirmed-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #f0e8db;
-  border-top: 3px solid #c8951a;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--surface-hover);
+  border-top: 3px solid var(--gold);
   border-radius: 50%;
   margin: 0 auto;
   animation: spin 0.8s linear infinite;
+  box-shadow: 0 0 16px var(--gold-glow-sm);
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* ── Button ─────────────────────────────────────── */
-
+/* ── Back button ───────────────────────────────── */
 .back-home-btn {
   width: 100%;
   padding: 14px;
-  background-color: #3b2a1a;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-hover);
+  color: var(--cream);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: all var(--transition);
+}
+
+.back-home-btn:hover {
+  background: rgba(200,149,26,0.12);
+  border-color: rgba(200,149,26,0.35);
+  color: var(--gold);
+  box-shadow: 0 4px 20px var(--gold-glow-sm);
+  transform: translateY(-1px);
+}
+
+.back-home-btn:active {
+  transform: scale(0.97);
 }
