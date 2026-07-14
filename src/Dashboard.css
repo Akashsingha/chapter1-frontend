@@ -11,7 +11,7 @@
 
 /* ── Header ────────────────────────────────────── */
 .dashboard-header {
-  background: rgba(13, 10, 7, 0.85);
+  background: rgba(0, 27, 72, 0.85);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border-bottom: 1px solid var(--border);
@@ -88,9 +88,9 @@
 }
 
 .enable-sound-btn {
-  background: rgba(200,149,26,0.12);
-  border: 1px solid rgba(200,149,26,0.30);
-  color: var(--gold);
+  background: rgba(1,138,190,0.12);
+  border: 1px solid rgba(1,138,190,0.30);
+  color: var(--primary);
   padding: 8px 16px;
   border-radius: 50px;
   cursor: pointer;
@@ -101,9 +101,9 @@
 }
 
 .enable-sound-btn:hover {
-  background: var(--gold);
+  background: var(--primary);
   color: var(--bg);
-  box-shadow: 0 4px 16px var(--gold-glow);
+  box-shadow: 0 4px 16px var(--primary-glow);
 }
 
 .ack-all-btn {
@@ -155,7 +155,7 @@
 /* ── Tabs ──────────────────────────────────────── */
 .dashboard-tabs {
   display: flex;
-  background: rgba(13,10,7,0.70);
+  background: rgba(0,27,72,0.70);
   backdrop-filter: var(--blur-sm);
   -webkit-backdrop-filter: var(--blur-sm);
   border-bottom: 1px solid var(--border);
@@ -184,8 +184,8 @@
 }
 
 .tab-btn.tab-active {
-  color: var(--gold);
-  border-bottom-color: var(--gold);
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
 .tab-count {
@@ -201,9 +201,9 @@
 }
 
 .tab-active .tab-count {
-  background: var(--gold);
+  background: var(--primary);
   color: var(--bg);
-  box-shadow: 0 0 10px var(--gold-glow-sm);
+  box-shadow: 0 0 10px var(--primary-glow-sm);
 }
 
 /* ── Orders list ───────────────────────────────── */
@@ -222,7 +222,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
-  border-left: 3px solid rgba(200,149,26,0.50);
+  border-left: 3px solid rgba(1,138,190,0.50);
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
@@ -287,7 +287,7 @@
 .order-number {
   font-size: 13px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--primary);
   letter-spacing: 0.5px;
 }
 
@@ -349,7 +349,7 @@
 
 .order-total {
   font-size: 15px;
-  color: var(--gold);
+  color: var(--primary);
   font-weight: 700;
   margin-top: 10px;
 }
@@ -363,9 +363,9 @@
   font-size: 11px;
   font-weight: 700;
   font-family: inherit;
-  background: rgba(200,149,26,0.14);
-  color: var(--gold);
-  border: 1px solid rgba(200,149,26,0.28);
+  background: rgba(1,138,190,0.14);
+  color: var(--primary);
+  border: 1px solid rgba(1,138,190,0.28);
 }
 
 .order-status.ready {
@@ -398,7 +398,7 @@
   margin-top: 12px;
   width: 100%;
   padding: 11px;
-  background: linear-gradient(135deg, var(--gold) 0%, #a07015 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #02457A 100%);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
@@ -407,13 +407,13 @@
   font-weight: 700;
   font-family: inherit;
   letter-spacing: 0.3px;
-  box-shadow: 0 4px 18px var(--gold-glow-sm);
+  box-shadow: 0 4px 18px var(--primary-glow-sm);
   transition: all var(--transition);
 }
 
 .ready-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px var(--gold-glow);
+  box-shadow: 0 6px 24px var(--primary-glow);
 }
 
 .ready-btn:active:not(:disabled) {
@@ -578,7 +578,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-left: 3px solid rgba(200,149,26,0.50);
+  border-left: 3px solid rgba(1,138,190,0.50);
   transition: all var(--transition);
 }
 
@@ -613,7 +613,7 @@
 
 .menu-mgmt-price {
   font-size: 13px;
-  color: var(--gold);
+  color: var(--primary);
   font-weight: 700;
 }
 
