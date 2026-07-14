@@ -11,7 +11,7 @@
 
 /* ── Header ────────────────────────────────────── */
 .menu-header {
-  background: rgba(0, 27, 72, 0.75);
+  background: rgba(13, 10, 7, 0.75);
   padding: 14px 20px;
   display: flex;
   justify-content: space-between;
@@ -29,8 +29,8 @@
   width: 42px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--primary);
-  box-shadow: 0 0 14px var(--primary-glow), 0 0 28px var(--primary-glow-sm);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 14px var(--gold-glow), 0 0 28px var(--gold-glow-sm);
   transition: box-shadow var(--transition);
 }
 
@@ -43,7 +43,7 @@
 }
 
 .cart-btn {
-  background: linear-gradient(135deg, var(--primary) 0%, #02457A 100%);
+  background: linear-gradient(135deg, var(--gold) 0%, #a07015 100%);
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -53,7 +53,7 @@
   font-weight: 600;
   font-family: inherit;
   letter-spacing: 0.4px;
-  box-shadow: 0 4px 18px var(--primary-glow);
+  box-shadow: 0 4px 18px var(--gold-glow);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
@@ -66,8 +66,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(1, 138, 190, 0.10);
-  border-bottom: 1px solid rgba(1, 138, 190, 0.30);
+  background: rgba(200, 149, 26, 0.10);
+  border-bottom: 1px solid rgba(200, 149, 26, 0.30);
   color: var(--cream);
   padding: 12px 18px;
   cursor: pointer;
@@ -102,10 +102,10 @@
 
 .banner-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .banner-title { font-size: 13px; font-weight: 600; color: var(--cream); }
-.banner-sub { font-size: 12px; color: var(--primary); }
+.banner-sub { font-size: 12px; color: var(--gold); }
 .banner-ready .banner-sub { color: var(--green); }
 .banner-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.banner-track { font-size: 12px; font-weight: 600; color: var(--primary); }
+.banner-track { font-size: 12px; font-weight: 600; color: var(--gold); }
 .banner-ready .banner-track { color: var(--green); }
 .banner-dismiss {
   background: rgba(255, 255, 255, 0.10);
@@ -121,7 +121,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(0, 27, 72, 0.85);
+  background: rgba(13, 10, 7, 0.85);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border-bottom: 1px solid var(--border);
@@ -161,10 +161,10 @@
 }
 
 .category-pill.active {
-  background: var(--primary);
+  background: var(--gold);
   color: var(--bg);
-  border-color: var(--primary);
-  box-shadow: 0 4px 16px var(--primary-glow-sm);
+  border-color: var(--gold);
+  box-shadow: 0 4px 16px var(--gold-glow-sm);
   transform: scale(1.05);
 }
 
@@ -178,7 +178,7 @@
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--gold);
   margin-bottom: 14px;
   display: flex;
   align-items: center;
@@ -190,7 +190,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, var(--primary-glow), transparent);
+  background: linear-gradient(90deg, var(--gold-glow), transparent);
 }
 
 /* Horizontal scroll container */
@@ -240,7 +240,7 @@
 .menu-item-image-placeholder {
   width: 100%;
   height: 140px;
-  background: linear-gradient(135deg, rgba(1,138,190,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  background: linear-gradient(135deg, rgba(200,149,26,0.08) 0%, rgba(255,255,255,0.02) 100%);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -273,7 +273,7 @@
 }
 
 .menu-card p {
-  color: var(--primary);
+  color: var(--gold);
   font-weight: 700;
   font-size: 14px;
   margin-bottom: 12px;
@@ -283,9 +283,9 @@
 /* ── Add button (Blinkit Style Bounce) ─────────── */
 .add-btn {
   width: 100%;
-  background: rgba(1, 138, 190, 0.15);
-  color: var(--primary);
-  border: 1px solid rgba(1, 138, 190, 0.35);
+  background: rgba(200, 149, 26, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(200, 149, 26, 0.35);
   padding: 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -319,7 +319,7 @@
   bottom: 20px;
   left: 20px;
   right: 20px;
-  background: linear-gradient(135deg, rgba(1,138,190,0.95) 0%, rgba(160,112,21,0.98) 100%);
+  background: linear-gradient(135deg, rgba(200,149,26,0.95) 0%, rgba(160,112,21,0.98) 100%);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   color: #fff;
@@ -328,7 +328,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 8px 32px var(--primary-glow), 0 2px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px var(--gold-glow), 0 2px 8px rgba(0,0,0,0.5);
   cursor: pointer;
   z-index: 100;
   animation: slideUpCart 0.35s cubic-bezier(0.4,0,0.2,1) both;
@@ -368,4 +368,4 @@
 .menu-error { text-align: center; padding: 80px 24px; }
 .error-icon { font-size: 52px; margin-bottom: 14px; opacity: 0.5; }
 .error-message { color: var(--cream-muted); font-size: 15px; margin-bottom: 24px; }
-.retry-btn { background: rgba(1,138,190,0.15); color: var(--primary); border: 1px solid rgba(1,138,190,0.35); padding: 12px 32px; border-radius: 50px; font-weight: 600; cursor: pointer; }
+.retry-btn { background: rgba(200,149,26,0.15); color: var(--gold); border: 1px solid rgba(200,149,26,0.35); padding: 12px 32px; border-radius: 50px; font-weight: 600; cursor: pointer; }

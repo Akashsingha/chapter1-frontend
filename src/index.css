@@ -2,17 +2,17 @@
 
 /* ── Design Tokens ─────────────────────────────── */
 :root {
-  --bg:            #001B48;
-  --bg2:           #02457A;
+  --bg:            #0d0a07;
+  --bg2:           #110e09;
   --surface:       rgba(255, 255, 255, 0.05);
   --surface-hover: rgba(255, 255, 255, 0.09);
   --surface-active:rgba(255, 255, 255, 0.13);
   --border:        rgba(255, 255, 255, 0.10);
   --border-hover:  rgba(255, 255, 255, 0.20);
-  --primary:          #018ABE;
-  --primary-light:    #97CADB;
-  --primary-glow:     rgba(1, 138, 190, 0.35);
-  --primary-glow-sm:  rgba(1, 138, 190, 0.18);
+  --gold:          #c8951a;
+  --gold-light:    #e8b040;
+  --gold-glow:     rgba(200, 149, 26, 0.35);
+  --gold-glow-sm:  rgba(200, 149, 26, 0.18);
   --cream:         #fdf6ec;
   --cream-muted:   rgba(253, 246, 236, 0.55);
   --green:         #4ade80;
