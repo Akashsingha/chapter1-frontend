@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMenu, getOrder } from "./api";
 import supabase from "./supabaseClient";
@@ -11,6 +11,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
   const [addedItem, setAddedItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeCategory, setActiveCategory] = useState("");
 
   // ── Active order tracking ────────────────────────
   const [activeOrder, setActiveOrder] = useState(null);
@@ -22,7 +23,6 @@ function Menu({ cart, addToCart, syncCartPrices }) {
     getMenu()
       .then((data) => {
         setMenuItems(data);
-        // Fix #15 — sync stale cart prices with fresh menu prices
         if (syncCartPrices) syncCartPrices(data);
         setLoading(false);
       })
@@ -34,7 +34,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
         );
         setLoading(false);
       });
-  }, []);
+  }, [syncCartPrices]);
 
   useEffect(() => {
     fetchMenu();
@@ -53,7 +53,6 @@ function Menu({ cart, addToCart, syncCartPrices }) {
       return;
     }
 
-    // Only show if the order was placed today
     const today = new Date().toDateString();
     const orderDate = new Date(parsed.placedAt).toDateString();
     if (today !== orderDate) {
@@ -61,11 +60,9 @@ function Menu({ cart, addToCart, syncCartPrices }) {
       return;
     }
 
-    // Fetch the current status from the server
     getOrder(parsed.id)
       .then((order) => {
         if (order.status === "cancelled" || order.status === "completed") {
-          // Order was cancelled or picked up — no point tracking it
           localStorage.removeItem("activeOrder");
           return;
         }
@@ -73,13 +70,11 @@ function Menu({ cart, addToCart, syncCartPrices }) {
         setOrderStatus(order.status);
       })
       .catch(() => {
-        // Order ID not found in DB — clear stale entry
         localStorage.removeItem("activeOrder");
       });
   }, []);
 
   // ── Live status updates via Supabase realtime ────
-  // When kitchen marks order ready, banner lights up green instantly
   useEffect(() => {
     if (!activeOrder) return;
 
@@ -123,7 +118,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [activeOrder]);
+  }, [activeOrder, orderStatus]);
 
   function dismissActiveOrder() {
     localStorage.removeItem("activeOrder");
@@ -137,17 +132,54 @@ function Menu({ cart, addToCart, syncCartPrices }) {
   function handleAdd(item) {
     addToCart(item);
     setAddedItem(item.id);
-    setTimeout(() => setAddedItem(null), 1000);
+    setTimeout(() => setAddedItem(null), 800);
   }
 
   const grouped = menuItems
-    .filter(item => item.is_available !== false) // hide sold-out items from customers
+    .filter(item => item.is_available !== false)
     .reduce((acc, item) => {
       const category = item.category || "Others";
       if (!acc[category]) acc[category] = [];
       acc[category].push(item);
       return acc;
     }, {});
+
+  const categories = Object.keys(grouped);
+
+  // ── Scroll Spy for Active Category ───────────────
+  const observer = useRef(null);
+  useEffect(() => {
+    observer.current = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries.filter(entry => entry.isIntersecting);
+        if (visibleSections.length > 0) {
+          // Use the first visible section
+          setActiveCategory(visibleSections[0].target.getAttribute('data-category'));
+        }
+      },
+      {
+        rootMargin: "-120px 0px -40% 0px",
+        threshold: 0.1
+      }
+    );
+
+    const sections = document.querySelectorAll(".menu-section");
+    sections.forEach(sec => observer.current.observe(sec));
+
+    return () => {
+      if (observer.current) observer.current.disconnect();
+    };
+  }, [categories.length]);
+
+  function scrollToCategory(cat) {
+    setActiveCategory(cat);
+    const el = document.getElementById(`cat-${cat}`);
+    if (el) {
+      const yOffset = -100; // Account for sticky headers
+      const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
 
   // ── Status helpers for banner ────────────────────
   function getBannerIcon() {
@@ -169,7 +201,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
   }
 
   return (
-    <div>
+    <div className="menu-page">
       <div className="menu-header">
         <div className="menu-header-brand">
           <img src={logo} alt="Chapter 1 Logo" className="menu-logo" />
@@ -212,11 +244,29 @@ function Menu({ cart, addToCart, syncCartPrices }) {
         </div>
       )}
 
+      {/* ── Category Navigation Bar ── */}
+      {!loading && !error && categories.length > 0 && (
+        <div className="category-nav-wrapper">
+          <div className="category-nav">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                className={`category-pill ${activeCategory === cat ? "active" : ""}`}
+                onClick={() => scrollToCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className="menu-loading">
-          <div className="menu-skeleton">
-            {[1, 2, 3, 4].map((n) => (
+          <div className="menu-skeleton-row">
+            {[1, 2, 3].map((n) => (
               <div key={n} className="skeleton-card">
+                <div className="skeleton-image" />
                 <div className="skeleton-line skeleton-title" />
                 <div className="skeleton-line skeleton-price" />
                 <div className="skeleton-line skeleton-btn" />
@@ -248,25 +298,39 @@ function Menu({ cart, addToCart, syncCartPrices }) {
 
       {!loading &&
         !error &&
-        Object.keys(grouped).map((category) => (
-          <div key={category} className="menu-section">
+        categories.map((category) => (
+          <div key={category} id={`cat-${category}`} data-category={category} className="menu-section">
             <h2 className="section-title">{category}</h2>
-            <div className="menu-grid">
+            <div className="menu-carousel">
               {grouped[category].map((item) => (
                 <div key={item.id} className="menu-card">
-                  <h3>{item.name}</h3>
-                  <p>₹{item.price / 100}</p>
-                  <button
-                    className={`add-btn ${addedItem === item.id ? "added" : ""}`}
-                    onClick={() => handleAdd(item)}
-                  >
-                    {addedItem === item.id ? "✓ Added" : "Add"}
-                  </button>
+                  {/* Image Support */}
+                  {item.image_url ? (
+                    <img src={item.image_url} alt={item.name} className="menu-item-image" loading="lazy" />
+                  ) : (
+                    <div className="menu-item-image-placeholder">
+                      <span className="placeholder-icon">☕</span>
+                    </div>
+                  )}
+                  
+                  <div className="menu-card-content">
+                    <h3>{item.name}</h3>
+                    <p>₹{item.price / 100}</p>
+                    <button
+                      className={`add-btn ${addedItem === item.id ? "added" : ""}`}
+                      onClick={() => handleAdd(item)}
+                    >
+                      {addedItem === item.id ? "✓ Added" : "Add"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         ))}
+
+      {/* Spacing for floating cart */}
+      <div style={{ height: "100px" }} />
 
       {totalItems > 0 && (
         <div className="floating-cart" onClick={() => navigate("/cart")}>
