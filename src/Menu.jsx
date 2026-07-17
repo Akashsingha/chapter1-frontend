@@ -11,7 +11,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
   const [addedItem, setAddedItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeCategory, setActiveCategory] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
 
   // ── Active order tracking ────────────────────────
   const [activeOrder, setActiveOrder] = useState(null);
@@ -145,6 +145,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
     }, {});
 
   const categories = Object.keys(grouped);
+  const displayCategories = ["All", ...categories];
 
   // ── Scroll Spy for Active Category ───────────────
   const observer = useRef(null);
@@ -153,7 +154,6 @@ function Menu({ cart, addToCart, syncCartPrices }) {
       (entries) => {
         const visibleSections = entries.filter(entry => entry.isIntersecting);
         if (visibleSections.length > 0) {
-          // Use the first visible section
           setActiveCategory(visibleSections[0].target.getAttribute('data-category'));
         }
       },
@@ -173,6 +173,13 @@ function Menu({ cart, addToCart, syncCartPrices }) {
 
   function scrollToCategory(cat) {
     setActiveCategory(cat);
+    
+    if (cat === "All") {
+      // Scroll to the very top of the menu sections
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     const el = document.getElementById(`cat-${cat}`);
     if (el) {
       const yOffset = -100; // Account for sticky headers
@@ -248,7 +255,7 @@ function Menu({ cart, addToCart, syncCartPrices }) {
       {!loading && !error && categories.length > 0 && (
         <div className="category-nav-wrapper">
           <div className="category-nav">
-            {categories.map((cat) => (
+            {displayCategories.map((cat) => (
               <button
                 key={cat}
                 className={`category-pill ${activeCategory === cat ? "active" : ""}`}
