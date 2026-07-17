@@ -312,13 +312,19 @@ function Menu({ cart, addToCart, syncCartPrices }) {
               {grouped[category].map((item) => (
                 <div key={item.id} className="menu-card">
                   {/* Image Support */}
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.name} className="menu-item-image" loading="lazy" />
-                  ) : (
-                    <div className="menu-item-image-placeholder">
-                      <span className="placeholder-icon">☕</span>
-                    </div>
-                  )}
+                  <img 
+                    src={item.image_url || `/images/${item.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.webp`} 
+                    alt={item.name} 
+                    className="menu-item-image" 
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="menu-item-image-placeholder" style={{ display: 'none' }}>
+                    <span className="placeholder-icon">☕</span>
+                  </div>
                   
                   <div className="menu-card-content">
                     <h3>{item.name}</h3>
