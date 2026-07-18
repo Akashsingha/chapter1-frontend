@@ -157,6 +157,15 @@ export async function linkRecipe(menuItemId, inventoryItemId, quantityRequired) 
   return response.data
 }
 
+// ── Analytics (Dashboard) ────────────────────────────────
+
+export async function getAnalytics(days = 7) {
+  const config = dashboardConfig()
+  config.params = { days }
+  const response = await api.get('/analytics', config)
+  return response.data
+}
+
 // ── Dashboard Auth ───────────────────────────────────────
 
 export async function verifyDashboardPassword(password) {

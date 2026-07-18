@@ -13,8 +13,9 @@ import {
 import supabase from './supabaseClient'
 import './Dashboard.css'
 import Inventory from './Inventory'
+import Analytics from './Analytics'
 
-const TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory']
+const TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory', 'Analytics']
 const AUTO_REFRESH_INTERVAL = 60000 // 60s fallback
 
 function Dashboard() {
@@ -477,8 +478,13 @@ function Dashboard() {
         <Inventory menuItems={menuItems} />
       )}
 
+      {/* ── Analytics Tab ── */}
+      {activeTab === 'Analytics' && (
+        <Analytics />
+      )}
+
       {/* ── Orders list (Active / Ready / All Today) ── */}
-      {activeTab !== 'Menu' && activeTab !== 'Inventory' && (
+      {activeTab !== 'Menu' && activeTab !== 'Inventory' && activeTab !== 'Analytics' && (
         <div className="orders-list">
           {filteredOrders.length === 0 && (
             <div className="no-orders">
