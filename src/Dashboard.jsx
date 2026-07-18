@@ -14,8 +14,9 @@ import supabase from './supabaseClient'
 import './Dashboard.css'
 import Inventory from './Inventory'
 import Analytics from './Analytics'
+import Accounting from './Accounting'
 
-const TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory', 'Analytics']
+const TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory', 'Analytics', 'Accounting']
 const AUTO_REFRESH_INTERVAL = 60000 // 60s fallback
 
 function Dashboard() {
@@ -366,6 +367,63 @@ function Dashboard() {
     return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
   }
 
+  // ── Print Invoice Logic ──────────────────────────────────
+  function handlePrintInvoice(order) {
+    const receiptHtml = `
+      <html>
+        <head>
+          <title>Receipt - Order #${order.order_number || order.id.substring(0,4)}</title>
+          <style>
+            body { font-family: 'Courier New', Courier, monospace; padding: 20px; width: 300px; margin: 0 auto; color: #000; }
+            h2 { text-align: center; margin-bottom: 5px; }
+            .header-info { text-align: center; font-size: 12px; margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+            .item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+            .total { display: flex; justify-content: space-between; font-weight: bold; margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px; font-size: 16px; }
+            .gst { font-size: 12px; text-align: right; margin-top: 5px; color: #555; }
+            .footer { text-align: center; margin-top: 30px; font-size: 12px; border-top: 1px dashed #000; padding-top: 10px; }
+            @media print {
+              body { width: 100%; margin: 0; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h2>CHAPTER 1 CAFE</h2>
+          <div class="header-info">
+            Order #${order.order_number || order.id.substring(0,4)}<br/>
+            ${new Date(order.created_at).toLocaleString()}<br/>
+            Customer: ${order.customer_name || 'Walk-in'}<br/>
+            Payment: ${order.payment_method.toUpperCase()}
+          </div>
+          <div class="items">
+            ${order.items.map(item => `
+              <div class="item">
+                <span>${item.quantity}x ${item.name}</span>
+                <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="total">
+            <span>TOTAL:</span>
+            <span>₹${(order.total_amount / 100).toFixed(2)}</span>
+          </div>
+          <div class="gst">
+            (Includes 5% GST: ₹${((order.total_amount / 100) * 0.05).toFixed(2)})
+          </div>
+          <div class="footer">
+            Thank you for visiting!<br/>
+            Powered by Antigravity POS
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+      </html>
+    `
+    const printWindow = window.open('', '_blank', 'width=400,height=600')
+    printWindow.document.write(receiptHtml)
+    printWindow.document.close()
+  }
+
   // ── Render ──────────────────────────────────────
   return (
     <div>
@@ -483,8 +541,13 @@ function Dashboard() {
         <Analytics />
       )}
 
+      {/* ── Accounting Tab ── */}
+      {activeTab === 'Accounting' && (
+        <Accounting />
+      )}
+
       {/* ── Orders list (Active / Ready / All Today) ── */}
-      {activeTab !== 'Menu' && activeTab !== 'Inventory' && activeTab !== 'Analytics' && (
+      {activeTab !== 'Menu' && activeTab !== 'Inventory' && activeTab !== 'Analytics' && activeTab !== 'Accounting' && (
         <div className="orders-list">
           {filteredOrders.length === 0 && (
             <div className="no-orders">
@@ -566,6 +629,12 @@ function Dashboard() {
                 </div>
 
                 {/* Action buttons */}
+                <div className="order-actions" style={{ marginTop: '10px' }}>
+                  <button onClick={() => handlePrintInvoice(order)} className="btn-print-receipt">
+                    🖨️ Print Receipt
+                  </button>
+                </div>
+
                 {order.status === 'received' && (
                   <button
                     className="ready-btn"

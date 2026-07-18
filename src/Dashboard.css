@@ -652,3 +652,16 @@
   color: #fff;
   box-shadow: 0 0 12px var(--red-glow);
 }
+.btn-print-receipt {
+  background: var(--bg-dark);
+  color: var(--primary-light);
+  border: 1px solid var(--border-light);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  width: 100%;
+}
+.btn-print-receipt:hover {
+  background: var(--card-bg);
+}

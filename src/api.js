@@ -166,6 +166,27 @@ export async function getAnalytics(days = 7) {
   return response.data
 }
 
+// ── Accounting (Dashboard) ───────────────────────────────
+
+export async function getExpenses(month) {
+  const config = dashboardConfig()
+  if (month) config.params = { month }
+  const response = await api.get('/expenses', config)
+  return response.data
+}
+
+export async function logExpense(expenseData) {
+  const response = await api.post('/expenses', expenseData, dashboardConfig())
+  return response.data
+}
+
+export async function getAccountingSummary(month) {
+  const config = dashboardConfig()
+  config.params = { month }
+  const response = await api.get('/accounting/summary', config)
+  return response.data
+}
+
 // ── Dashboard Auth ───────────────────────────────────────
 
 export async function verifyDashboardPassword(password) {
