@@ -131,6 +131,32 @@ export async function toggleMenuAvailability(itemId) {
   return response.data
 }
 
+// ── Inventory & Recipes (Dashboard) ──────────────────────
+
+export async function getInventory() {
+  const response = await api.get('/inventory', dashboardConfig())
+  return response.data
+}
+
+export async function restockInventory(itemId, addedAmount) {
+  const response = await api.post('/inventory/restock', { item_id: itemId, added_amount: addedAmount }, dashboardConfig())
+  return response.data
+}
+
+export async function getRecipes() {
+  const response = await api.get('/recipes', dashboardConfig())
+  return response.data
+}
+
+export async function linkRecipe(menuItemId, inventoryItemId, quantityRequired) {
+  const response = await api.post('/recipes/link', {
+    menu_item_id: menuItemId,
+    inventory_item_id: inventoryItemId,
+    quantity_required: quantityRequired
+  }, dashboardConfig())
+  return response.data
+}
+
 // ── Dashboard Auth ───────────────────────────────────────
 
 export async function verifyDashboardPassword(password) {

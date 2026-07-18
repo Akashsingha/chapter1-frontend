@@ -12,8 +12,9 @@ import {
 } from './api'
 import supabase from './supabaseClient'
 import './Dashboard.css'
+import Inventory from './Inventory'
 
-const TABS = ['Active', 'Ready', 'All Today', 'Menu']
+const TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory']
 const AUTO_REFRESH_INTERVAL = 60000 // 60s fallback
 
 function Dashboard() {
@@ -194,9 +195,9 @@ function Dashboard() {
     checkBellState(ordersMap)
   }, [ordersMap, checkBellState])
 
-  // ── Fetch menu when Menu tab is opened ──────────
+  // ── Fetch menu when Menu or Inventory tab is opened ──────────
   useEffect(() => {
-    if (activeTab === 'Menu') {
+    if (activeTab === 'Menu' || activeTab === 'Inventory') {
       fetchMenuItems()
     }
   }, [activeTab, fetchMenuItems])
@@ -471,8 +472,13 @@ function Dashboard() {
         </div>
       )}
 
+      {/* ── Inventory Tab ── */}
+      {activeTab === 'Inventory' && (
+        <Inventory menuItems={menuItems} />
+      )}
+
       {/* ── Orders list (Active / Ready / All Today) ── */}
-      {activeTab !== 'Menu' && (
+      {activeTab !== 'Menu' && activeTab !== 'Inventory' && (
         <div className="orders-list">
           {filteredOrders.length === 0 && (
             <div className="no-orders">
