@@ -316,7 +316,7 @@
 /* ── Floating cart bar ─────────────────────────── */
 .floating-cart {
   position: fixed;
-  bottom: 20px;
+  bottom: max(24px, env(safe-area-inset-bottom, 24px));
   left: 20px;
   right: 20px;
   background: linear-gradient(135deg, rgba(200,149,26,0.95) 0%, rgba(160,112,21,0.98) 100%);
@@ -373,17 +373,20 @@
 /* Waiter UI */
 .floating-waiter-btn {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  bottom: max(95px, calc(env(safe-area-inset-bottom, 24px) + 75px));
+  right: 20px;
   background: var(--bg-dark);
   color: #ffa500;
-  border: 1px solid #ffa500;
+  border: 1.5px solid #ffa500;
   padding: 12px 20px;
   border-radius: 30px;
   font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
   cursor: pointer;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .waiter-modal-overlay {
   position: fixed;
