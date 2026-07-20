@@ -369,3 +369,78 @@
 .error-icon { font-size: 52px; margin-bottom: 14px; opacity: 0.5; }
 .error-message { color: var(--cream-muted); font-size: 15px; margin-bottom: 24px; }
 .retry-btn { background: rgba(200,149,26,0.15); color: var(--gold); border: 1px solid rgba(200,149,26,0.35); padding: 12px 32px; border-radius: 50px; font-weight: 600; cursor: pointer; }
+
+/* Waiter UI */
+.floating-waiter-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: var(--bg-dark);
+  color: #ffa500;
+  border: 1px solid #ffa500;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  cursor: pointer;
+  z-index: 1000;
+}
+.waiter-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+.waiter-modal-content {
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  border: 1px solid var(--border-light);
+  text-align: center;
+}
+.waiter-modal-content input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-dark);
+  color: white;
+  font-size: 1.1rem;
+  text-align: center;
+}
+.waiter-modal-actions {
+  display: flex;
+  gap: 15px;
+}
+.waiter-modal-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+.btn-cancel {
+  background: var(--bg-dark);
+  color: white;
+  border: 1px solid var(--border-light) !important;
+}
+.btn-call {
+  background: #ffa500;
+  color: black;
+}
+.waiter-error {
+  color: #ff4444;
+  margin-bottom: 10px;
+}
+.waiter-success {
+  color: #4caf50;
+  font-size: 1.2rem;
+  font-weight: bold;
+}

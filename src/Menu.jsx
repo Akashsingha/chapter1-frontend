@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMenu, getOrder } from "./api";
+import { getMenu, getOrder, callWaiter, extractErrorMessage } from "./api";
 import supabase from "./supabaseClient";
 import "./Menu.css";
 import logo from "./logo.jpg";
@@ -12,6 +12,12 @@ function Menu({ cart, addToCart, syncCartPrices }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+
+  const [waiterModalOpen, setWaiterModalOpen] = useState(false);
+  const [waiterTable, setWaiterTable] = useState("");
+  const [waiterLoading, setWaiterLoading] = useState(false);
+  const [waiterSuccess, setWaiterSuccess] = useState("");
+  const [waiterError, setWaiterError] = useState("");
 
   // ── Active order tracking ────────────────────────
   const [activeOrder, setActiveOrder] = useState(null);
@@ -126,6 +132,24 @@ function Menu({ cart, addToCart, syncCartPrices }) {
     setOrderStatus(null);
   }
 
+  // ── Waiter logic ────────────────────────────────
+  async function handleCallWaiter(e) {
+    e.preventDefault();
+    if (!waiterTable) return;
+
+    setWaiterLoading(true);
+    setWaiterError("");
+    setWaiterSuccess("");
+    try {
+      await callWaiter(waiterTable);
+      setWaiterSuccess("A waiter is on the way!");
+      setTimeout(() => setWaiterModalOpen(false), 2000);
+    } catch (err) {
+      setWaiterError(extractErrorMessage(err));
+    }
+    setWaiterLoading(false);
+  }
+
   // ── Menu helpers ─────────────────────────────────
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
@@ -175,20 +199,18 @@ function Menu({ cart, addToCart, syncCartPrices }) {
     setActiveCategory(cat);
     
     if (cat === "All") {
-      // Scroll to the very top of the menu sections
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     const el = document.getElementById(`cat-${cat}`);
     if (el) {
-      const yOffset = -100; // Account for sticky headers
+      const yOffset = -100;
       const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
   }
 
-  // ── Status helpers for banner ────────────────────
   function getBannerIcon() {
     if (orderStatus === "ready") return "🔔";
     if (orderStatus === "preparing") return "👨‍🍳";
@@ -219,7 +241,6 @@ function Menu({ cart, addToCart, syncCartPrices }) {
         </button>
       </div>
 
-      {/* ── Active Order Tracking Banner ── */}
       {activeOrder && (
         <div
           className={`active-order-banner ${orderStatus === "ready" ? "banner-ready" : ""}`}
@@ -251,7 +272,6 @@ function Menu({ cart, addToCart, syncCartPrices }) {
         </div>
       )}
 
-      {/* ── Category Navigation Bar ── */}
       {!loading && !error && categories.length > 0 && (
         <div className="category-nav-wrapper">
           <div className="category-nav">
@@ -311,7 +331,6 @@ function Menu({ cart, addToCart, syncCartPrices }) {
             <div className="menu-carousel">
               {grouped[category].map((item) => (
                 <div key={item.id} className="menu-card">
-                  {/* Image Support */}
                   <img 
                     src={item.image_url || `/images/${item.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.webp`} 
                     alt={item.name} 
@@ -342,13 +361,50 @@ function Menu({ cart, addToCart, syncCartPrices }) {
           </div>
         ))}
 
-      {/* Spacing for floating cart */}
       <div style={{ height: "100px" }} />
 
       {totalItems > 0 && (
         <div className="floating-cart" onClick={() => navigate("/cart")}>
           <span className="floating-cart-count">{totalItems} items</span>
           <span className="floating-cart-text">View Cart →</span>
+        </div>
+      )}
+
+      <button className="floating-waiter-btn" onClick={() => {
+        setWaiterModalOpen(true);
+        setWaiterSuccess("");
+        setWaiterError("");
+        setWaiterTable("");
+      }}>
+        🛎️ Call Waiter
+      </button>
+
+      {waiterModalOpen && (
+        <div className="waiter-modal-overlay">
+          <div className="waiter-modal-content">
+            <h2>Call a Waiter</h2>
+            {waiterSuccess ? (
+              <p className="waiter-success">✅ {waiterSuccess}</p>
+            ) : (
+              <form onSubmit={handleCallWaiter}>
+                <p>Please enter your table number.</p>
+                <input
+                  type="text"
+                  placeholder="e.g. 5"
+                  value={waiterTable}
+                  onChange={(e) => setWaiterTable(e.target.value)}
+                  required
+                />
+                {waiterError && <p className="waiter-error">{waiterError}</p>}
+                <div className="waiter-modal-actions">
+                  <button type="button" className="btn-cancel" onClick={() => setWaiterModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="btn-call" disabled={waiterLoading}>
+                    {waiterLoading ? 'Calling...' : 'Call'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       )}
     </div>

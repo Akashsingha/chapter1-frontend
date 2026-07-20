@@ -187,6 +187,23 @@ export async function getAccountingSummary(month) {
   return response.data
 }
 
+// ── Waiter Call ──────────────────────────────────────────
+
+export async function callWaiter(tableNumber) {
+  const response = await api.post('/call-waiter', { table_number: tableNumber })
+  return response.data
+}
+
+export async function getWaiterCalls() {
+  const response = await api.get('/waiter-calls', dashboardConfig())
+  return response.data
+}
+
+export async function resolveWaiterCall(callId) {
+  const response = await api.patch(`/waiter-calls/${callId}/resolve`, {}, dashboardConfig())
+  return response.data
+}
+
 // ── Dashboard Auth ───────────────────────────────────────
 
 export async function verifyDashboardPassword(password) {

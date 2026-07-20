@@ -8,6 +8,8 @@ import {
   cancelOrder as apiCancelOrder,
   acknowledgeOrder as apiAcknowledgeOrder,
   toggleMenuAvailability as apiToggleAvailability,
+  getWaiterCalls,
+  resolveWaiterCall,
   extractErrorMessage,
 } from './api'
 import supabase from './supabaseClient'
@@ -16,16 +18,20 @@ import Inventory from './Inventory'
 import Analytics from './Analytics'
 import Accounting from './Accounting'
 
-const TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory', 'Analytics', 'Accounting']
+const ALL_TABS = ['Active', 'Ready', 'All Today', 'Menu', 'Inventory', 'Analytics', 'Accounting']
 const AUTO_REFRESH_INTERVAL = 60000 // 60s fallback
 
 function Dashboard() {
+  const [role] = useState(localStorage.getItem('dashboardRole') || 'staff')
+  const TABS = role === 'admin' ? ALL_TABS : ['Active', 'Ready', 'All Today', 'Menu', 'Inventory']
+
   // ── State ───────────────────────────────────────
   const [ordersMap, setOrdersMap] = useState(new Map())
   const [activeTab, setActiveTab] = useState('Active')
   const [error, setError] = useState('')
   const [menuItems, setMenuItems] = useState([])
   const [menuLoading, setMenuLoading] = useState(false)
+  const [waiterCalls, setWaiterCalls] = useState([])
 
   const audioCtx = useRef(null)
   const bellInterval = useRef(null)
@@ -117,6 +123,13 @@ function Dashboard() {
       })
   }, [])
 
+  // ── Fetch Waiter Calls ──────────────────────────
+  const fetchWaiterCalls = useCallback(() => {
+    getWaiterCalls()
+      .then(data => setWaiterCalls(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error fetching waiter calls:", err))
+  }, [])
+
   // ── Fetch menu items for Menu tab ───────────────
   const fetchMenuItems = useCallback(() => {
     setMenuLoading(true)
@@ -133,6 +146,7 @@ function Dashboard() {
   // ── Initial fetch + realtime subscription ───────
   useEffect(() => {
     fetchOrders()
+    fetchWaiterCalls()
 
     const channel = supabase
       .channel('dashboard')
@@ -171,6 +185,10 @@ function Dashboard() {
           }
         }
       )
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'waiter_calls' },
+        () => fetchWaiterCalls()
+      )
       .subscribe((status) => {
         // Fix #14 — auto-reconnect on channel error
         if (status === 'CHANNEL_ERROR') {
@@ -179,18 +197,21 @@ function Dashboard() {
             fetchOrders()
           }, 3000)
         }
-      })
+    })
 
     // Auto-refresh fallback every 60s
-    autoRefreshRef.current = setInterval(fetchOrders, AUTO_REFRESH_INTERVAL)
+    autoRefreshRef.current = setInterval(() => {
+      fetchOrders()
+      fetchWaiterCalls()
+    }, AUTO_REFRESH_INTERVAL)
 
     return () => {
       supabase.removeChannel(channel)
-      if (autoRefreshRef.current) clearInterval(autoRefreshRef.current)
+      clearInterval(autoRefreshRef.current)
       stopRinging()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [fetchOrders, fetchWaiterCalls, mergeOrder])
 
   // ── Check bell whenever orders change ───────────
   useEffect(() => {
@@ -422,6 +443,12 @@ function Dashboard() {
     const printWindow = window.open('', '_blank', 'width=400,height=600')
     printWindow.document.write(receiptHtml)
     printWindow.document.close()
+  }
+
+  function handleResolveWaiter(id) {
+    resolveWaiterCall(id)
+      .then(() => fetchWaiterCalls())
+      .catch(err => setError(extractErrorMessage(err)))
   }
 
   // ── Render ──────────────────────────────────────

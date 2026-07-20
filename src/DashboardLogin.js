@@ -19,11 +19,9 @@ function DashboardLogin({ onSuccess, sessionExpired }) {
     verifyDashboardPassword(password)
       .then(data => {
         setLoading(false)
-        if (data.valid) {
-          // Fix #3 — Store API key for future authenticated requests
-          if (data.api_key) {
-            localStorage.setItem('dashboardApiKey', data.api_key)
-          }
+        if (data.success) {
+          localStorage.setItem('dashboardApiKey', password)
+          localStorage.setItem('dashboardRole', data.role || 'staff')
           onSuccess()
         } else {
           setError('Incorrect password')
